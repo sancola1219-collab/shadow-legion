@@ -99,24 +99,36 @@ function put(data, baseX, baseZ, wx, y, wz, id, onlyAir) {
 function genSanctumColumn(seed, wx, wz, data, lx, lz) {
   const S = SANCTUM.half;
   const inPlaza = Math.abs(wx) <= S && Math.abs(wz) <= S;
-  const inGrass = Math.abs(wx) <= S + 10 && Math.abs(wz) <= S + 10;
-  if (!inGrass) return; // 廣場外＝虛空（浮空聖島）
+  const inApron = Math.abs(wx) <= S + 4 && Math.abs(wz) <= S + 4;
+  if (!inApron) return; // 廣場外＝虛空（浮空聖島）
 
   const col = (y, id) => { data[idx(lx, lz, y)] = id; };
   // 地基
   col(0, B.BEDROCK);
   for (let y = 1; y < GY; y++) col(y, B.DARKBRICK);
-  if (!inPlaza) { col(GY, B.GRASS); return; }
+  if (!inPlaza) { col(GY, B.PLATBASE); return; } // 外圍深色裙台
 
   // 棋盤石板
   col(GY, ((wx + wz) & 1) ? B.PLAZA : B.PLAZA2);
 
-  // 外圈柵欄＋四角紫光燈柱
+  // 中央走道（深色）＋走道發光點綴
+  const P0 = SANCTUM.portal;
+  if (Math.abs(wx) <= 1 && wz >= P0.z + 1 && wz <= 17) col(GY, B.PLATBASE);
+  if (wx === 0 && wz > P0.z + 1 && wz < 15 && ((wz % 6) + 6) % 6 === 1) col(GY, B.GLOWPAD);
+  // 每座召喚平台前的粉紅光壇
+  for (const [px2, pz2] of SANCTUM.platforms) {
+    if (wz === pz2 && wx === (px2 < 0 ? -4 : 4)) col(GY, B.GLOWPAD);
+  }
+
+  // 外圈深色矮牆＋定距紫燈、四角燈塔
   const edge = Math.abs(wx) === S || Math.abs(wz) === S;
   if (edge) {
     const corner = Math.abs(wx) === S && Math.abs(wz) === S;
     if (corner) { col(GY + 1, B.DARKBRICK); col(GY + 2, B.DARKBRICK); col(GY + 3, B.GLOWPURPLE); }
-    else if (!(wz === -S && Math.abs(wx) <= 3)) col(GY + 1, B.FENCE); // 北側閘口留缺
+    else if (!(wz === -S && Math.abs(wx) <= 3)) { // 北側閘口留缺
+      col(GY + 1, B.DARKBRICK);
+      if (((wx + wz) % 8 + 8) % 8 === 0) col(GY + 2, B.GLOWPURPLE);
+    }
   }
 
   // 閘口傳送門（北側）：5 寬 5 高拱門，中央 3×3 傳送門

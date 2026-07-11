@@ -91,8 +91,8 @@
       ctx.fillStyle = '#5cae3a';
       for (let x = 0; x < T; x += 4) ctx.fillRect(ox + x, oy + 9, 3, 2 + (x * 7 % 3)); }
     matTile(5, 196, 158, 110, { spots: 6, jit: 18 });           // 5 土路頂
-    matTile(6, 208, 208, 216, { spots: 3, jit: 10, edge: true }); // 6 石板亮
-    matTile(7, 170, 170, 182, { spots: 3, jit: 10, edge: true }); // 7 石板暗
+    matTile(6, 174, 182, 204, { spots: 2, jit: 8, edge: true }); // 6 石板亮（藍灰）
+    matTile(7, 142, 150, 176, { spots: 2, jit: 8, edge: true }); // 7 石板暗（藍灰）
     matTile(8, 136, 136, 144, { spots: 6, jit: 18 });           // 8 石頭
     matTile(9, 132, 132, 140, { spots: 3, jit: 10 });           // 9 石磚
     mortar(9, 'rgba(80,80,92,0.8)', [[0, 0, 16, 8], [0, 8, 8, 8], [8, 8, 8, 8]]);
@@ -222,22 +222,28 @@
       ctx.fillRect(ox + 12, oy + 20, 2, 4); ctx.fillRect(ox + 18, oy + 20, 2, 4); }
 
     // ---- 44.. 玩家（金甲勇者）與特效 ----
-    matTile(44, 235, 186, 64, { spots: 0, grad: 0.14 });        // 44 玩家鎧甲（金）
+    // 44 手臂：金甲＋深色護腕＋金邊
+    matTile(44, 232, 178, 58, { spots: 0, grad: 0.16 });
     { const [ox, oy] = tilePos(44);
-      ctx.fillStyle = '#f8e2a4'; ctx.fillRect(ox, oy, T, 3);
-      ctx.fillStyle = '#b8842a'; ctx.fillRect(ox, oy + T - 4, T, 4);
-      ctx.fillStyle = 'rgba(150,100,30,0.55)';
-      ctx.fillRect(ox + 4, oy + 12, T - 8, 2); ctx.fillRect(ox + 4, oy + 22, T - 8, 2);
-      ctx.fillStyle = '#fff2cc'; ctx.fillRect(ox + 5, oy + 5, 4, 4); }
-    matTile(45, 244, 210, 166, { spots: 0, grad: 0.06 });       // 45 玩家臉
-    rect(45, 3, 6, 3, 3, '#2a2a33'); rect(45, 10, 6, 3, 3, '#2a2a33');
-    px(45, 4, 6, '#ffffff'); px(45, 11, 6, '#ffffff');
-    rect(45, 6, 11, 4, 1, '#a06a50');
-    { const [ox, oy] = tilePos(45);
-      const g = ctx.createLinearGradient(ox, oy, ox, oy + 8);
-      g.addColorStop(0, '#c25048'); g.addColorStop(1, '#a8332c');
-      ctx.fillStyle = g; ctx.fillRect(ox, oy, T, 7); }             // 紅髮瀏海
-    matTile(46, 172, 46, 42, { spots: 2, jit: 14, grad: 0.12 }); // 46 玩家紅髮
+      ctx.fillStyle = '#f6e2a2'; ctx.fillRect(ox, oy, T, 2);        // 肩口高光
+      ctx.fillStyle = '#2e2a3e'; ctx.fillRect(ox, oy + 19, T, 9);   // 深色護腕
+      ctx.fillStyle = '#ffd977'; ctx.fillRect(ox, oy + 17, T, 2);   // 金邊
+      ctx.fillStyle = '#c99b32'; ctx.fillRect(ox, oy + 28, T, 4); } // 手
+    // 45 玩家臉：大眼＋眉＋微笑＋腮紅（Q 版）
+    matTile(45, 248, 214, 172, { spots: 0, grad: 0.05 });
+    rect(45, 3, 6, 4, 5, '#33231d'); rect(45, 9, 6, 4, 5, '#33231d');
+    rect(45, 3, 6, 4, 2, '#5a3a2c'); rect(45, 9, 6, 4, 2, '#5a3a2c'); // 虹膜上緣
+    rect(45, 4, 8, 2, 2, '#ffffff'); rect(45, 10, 8, 2, 2, '#ffffff'); // 高光
+    rect(45, 3, 4, 4, 1, '#9a4e34'); rect(45, 9, 4, 4, 1, '#9a4e34'); // 眉
+    rect(45, 6, 13, 4, 1, '#b06a4a'); px(45, 5, 12, '#b06a4a'); px(45, 10, 12, '#b06a4a'); // 微笑
+    rect(45, 1, 11, 2, 1, 'rgba(255,140,120,0.5)'); rect(45, 13, 11, 2, 1, 'rgba(255,140,120,0.5)'); // 腮紅
+    // 46 玩家紅髮：漸層＋髮絲
+    matTile(46, 178, 48, 44, { spots: 0, grad: 0.2 });
+    { const [ox, oy] = tilePos(46);
+      ctx.fillStyle = 'rgba(255,124,110,0.35)';
+      for (let x = 2; x < T; x += 7) ctx.fillRect(ox + x, oy, 2, T);
+      ctx.fillStyle = 'rgba(90,16,14,0.4)';
+      for (let x = 6; x < T; x += 7) ctx.fillRect(ox + x, oy, 2, T); }
     clearTile(47);                                              // 47 金劍
     for (let i = 0; i < 10; i++) rect(47, 4 + i, 12 - i, 2, 2, i < 2 ? '#8a5c20' : '#f0e0a0');
     for (let i = 2; i < 10; i++) px(47, 4 + i, 13 - i, '#c89a30');
@@ -280,6 +286,39 @@
     clearTile(52);                                              // 52 斬擊特效（白弧）
     { const [ox, oy] = tilePos(52); ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(ox + 16, oy + 16, 12, -0.8, 0.8); ctx.stroke(); }
+    // 53 玩家胸甲前板：深色側披＋金邊＋紫寶石
+    matTile(53, 232, 178, 58, { spots: 0, grad: 0.16 });
+    { const [ox, oy] = tilePos(53);
+      ctx.fillStyle = '#2e2a3e'; ctx.fillRect(ox, oy, 4, T); ctx.fillRect(ox + T - 4, oy, 4, T);
+      ctx.fillStyle = '#ffd977'; ctx.fillRect(ox + 4, oy, 2, T); ctx.fillRect(ox + T - 6, oy, 2, T);
+      ctx.fillStyle = '#f6e2a2'; ctx.fillRect(ox + 6, oy + 2, T - 12, 3);
+      ctx.fillStyle = '#7a2ee0';
+      ctx.beginPath(); ctx.moveTo(ox + 16, oy + 9); ctx.lineTo(ox + 22, oy + 16); ctx.lineTo(ox + 16, oy + 23); ctx.lineTo(ox + 10, oy + 16); ctx.fill();
+      ctx.fillStyle = '#c9a0ff'; ctx.fillRect(ox + 13, oy + 12, 4, 4);
+      ctx.fillStyle = '#2e2a3e'; ctx.fillRect(ox, oy + 26, T, 6);
+      ctx.fillStyle = '#ffd977'; ctx.fillRect(ox, oy + 24, T, 2); }
+    // 54 玩家軀幹側背/肩甲：金板＋飾線
+    matTile(54, 232, 178, 58, { spots: 0, grad: 0.16 });
+    { const [ox, oy] = tilePos(54);
+      ctx.fillStyle = '#f6e2a2'; ctx.fillRect(ox, oy, T, 2);
+      ctx.fillStyle = 'rgba(150,100,30,0.55)'; ctx.fillRect(ox, oy + 10, T, 2); ctx.fillRect(ox, oy + 19, T, 2);
+      ctx.fillStyle = '#2e2a3e'; ctx.fillRect(ox, oy + 26, T, 6);
+      ctx.fillStyle = '#ffd977'; ctx.fillRect(ox, oy + 24, T, 2); }
+    // 55 玩家腿：深色褲＋金靴
+    matTile(55, 46, 42, 62, { spots: 0, grad: 0.1 });
+    { const [ox, oy] = tilePos(55);
+      ctx.fillStyle = '#e8b84e'; ctx.fillRect(ox, oy + 17, T, 15);
+      ctx.fillStyle = '#f6e2a2'; ctx.fillRect(ox, oy + 17, T, 2);
+      ctx.fillStyle = '#b8842a'; ctx.fillRect(ox, oy + 28, T, 4); }
+    // 56 玩家腰帶：深色＋金扣
+    matTile(56, 40, 36, 54, { spots: 0, grad: 0.08 });
+    rect(56, 6, 4, 4, 8, '#ffd24a'); rect(56, 7, 6, 2, 4, '#8a5c20');
+    // 58 粉紅發光壇（聖所地板）
+    matTile(58, 236, 74, 190, { spots: 0, grad: 0.06 });
+    glow(58, 8, 8, 10, 'rgba(255,214,244,0.95)', 0.92);
+    { const [ox, oy] = tilePos(58);
+      ctx.strokeStyle = '#8a1e66'; ctx.lineWidth = 3;
+      ctx.strokeRect(ox + 1.5, oy + 1.5, T - 3, T - 3); }
 
     // ---- 64.. 各世界單位皮膚 ----
     // 每世界調色盤：[骨, 殭屍膚, 殭屍衣, 守衛甲, 守A眼, 守B眼, 魔王甲, 魔王眼]
@@ -320,10 +359,11 @@
       rect(b + 4, 3, 3, 2, 4, 'rgba(0,0,0,0.22)'); rect(b + 4, 11, 8, 2, 4, 'rgba(0,0,0,0.22)'); // 破布
       // 守衛（塊甲＋鉚釘＋發光眼縫）
       const mkGuard = (bt, eye) => {
-        matTile(bt, p.armor[0], p.armor[1], p.armor[2], { spots: 2, jit: 12, grad: 0.14 });
+        matTile(bt, p.armor[0], p.armor[1], p.armor[2], { spots: 0, grad: 0.16 });
         rect(bt, 1, 1, 14, 1, 'rgba(255,255,255,0.22)');
         rect(bt, 1, 14, 14, 1, 'rgba(0,0,0,0.3)');
-        for (let y = 4; y < 15; y += 5) for (let x = 2; x < 15; x += 5) px(bt, x, y, 'rgba(255,255,255,0.3)');
+        rect(bt, 0, 7, 16, 1, 'rgba(0,0,0,0.25)'); // 甲片分段線
+        for (const [x, y] of [[3, 4], [12, 4], [3, 11], [12, 11]]) px(bt, x, y, 'rgba(255,255,255,0.35)');
         matTile(bt + 1, p.armor[0], p.armor[1], p.armor[2], { spots: 0, grad: 0.1 });
         glow(bt + 1, 8, 6, 7, eye, 0.5);
         rect(bt + 1, 3, 5, 10, 2, eye);

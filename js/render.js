@@ -167,18 +167,19 @@
 
   // ---------- 單位模型（各部件：尺寸、中心、tile；pivot+swing=走路擺動；arm=攻擊揮臂） ----------
   // 皮膚 tile 配置與 textures.js 的 skinBase 對應：模型鍵 = skin + 世界編號（'skel1'..'boss5'）＋'player'。
+  // v1.2：全面改 Q 版比例（大頭、短腿、厚身），向卡通收集遊戲的角色風格看齊。
   const MODELS = {};
-  // 標準人形（腳 pivot 走路擺動、臂 pivot 揮擊）
+  // Q 版人形（腳 pivot 走路擺動、臂 pivot 揮擊）
   function humanoid(o) {
-    const lw = o.leg || 0.22, bw = o.bodyW || 0.52, aw = o.armW || 0.2, hd = o.head || 0.48;
+    const lw = o.leg || 0.2, bw = o.bodyW || 0.5, aw = o.armW || 0.18, hd = o.head || 0.58;
     const parts = [
-      { size: [lw, 0.8, lw], pivot: [0.13, 0.8, 0], swing: 1, tile: o.legT },
-      { size: [lw, 0.8, lw], pivot: [-0.13, 0.8, 0], swing: -1, tile: o.legT },
-      { size: [bw, 0.74, o.bodyD || 0.3], at: [0, 1.18, 0], tile: o.bodyT },
-      { size: [aw, 0.72, aw], pivot: [bw / 2 + aw / 2 + 0.02, 1.84, 0], swing: -1, arm: 1, tile: o.armT },
-      { size: [aw, 0.72, aw], pivot: [-(bw / 2 + aw / 2 + 0.02), 1.84, 0], swing: 1, arm: 1, tile: o.armT },
-      { size: [hd, hd, hd], at: [0, 1.8, 0], tile: o.headT },
-      { size: [hd - 0.02, hd - 0.02, 0.05], at: [0, 1.8, -(hd / 2 + 0.01)], tile: o.faceT },
+      { size: [lw, 0.5, lw], pivot: [0.13, 0.5, 0], swing: 1, tile: o.legT },
+      { size: [lw, 0.5, lw], pivot: [-0.13, 0.5, 0], swing: -1, tile: o.legT },
+      { size: [bw, 0.62, o.bodyD || 0.3], at: [0, 0.83, 0], tile: o.bodyT },
+      { size: [aw, 0.58, aw], pivot: [bw / 2 + aw / 2 + 0.02, 1.12, 0], swing: -1, arm: 1, tile: o.armT },
+      { size: [aw, 0.58, aw], pivot: [-(bw / 2 + aw / 2 + 0.02), 1.12, 0], swing: 1, arm: 1, tile: o.armT },
+      { size: [hd, hd, hd], at: [0, 1.45, 0], tile: o.headT },
+      { size: [hd - 0.02, hd - 0.02, 0.05], at: [0, 1.45, -(hd / 2 + 0.01)], tile: o.faceT },
     ];
     for (const ex of (o.extra || [])) parts.push(ex);
     return parts;
@@ -187,45 +188,54 @@
     const SB = MWTextures.skinBase;
     for (let w = 1; w <= 5; w++) {
       const b = SB(w);
-      // 骨架（纖細）
-      MODELS['skel' + w] = humanoid({ leg: 0.16, bodyW: 0.4, bodyD: 0.22, armW: 0.14, head: 0.46, legT: b, bodyT: b, armT: b, headT: b, faceT: b + 1 });
-      // 殭屍（雙臂前伸的經典姿勢）
+      // 骨架（纖細大頭）
+      MODELS['skel' + w] = humanoid({ leg: 0.14, bodyW: 0.38, bodyD: 0.22, armW: 0.12, head: 0.54, legT: b, bodyT: b, armT: b, headT: b, faceT: b + 1 });
+      // 殭屍（雙臂前伸的經典姿勢、大頭）
       MODELS['zomb' + w] = [
-        { size: [0.22, 0.8, 0.22], pivot: [0.13, 0.8, 0], swing: 1, tile: b + 4 },
-        { size: [0.22, 0.8, 0.22], pivot: [-0.13, 0.8, 0], swing: -1, tile: b + 4 },
-        { size: [0.52, 0.74, 0.3], at: [0, 1.18, 0], tile: b + 4 },
-        { size: [0.18, 0.18, 0.66], at: [0.35, 1.44, -0.3], tile: b + 2 },
-        { size: [0.18, 0.18, 0.66], at: [-0.35, 1.44, -0.3], tile: b + 2 },
-        { size: [0.48, 0.48, 0.48], at: [0, 1.8, 0], tile: b + 2 },
-        { size: [0.46, 0.46, 0.05], at: [0, 1.8, -0.25], tile: b + 3 },
+        { size: [0.2, 0.5, 0.2], pivot: [0.13, 0.5, 0], swing: 1, tile: b + 4 },
+        { size: [0.2, 0.5, 0.2], pivot: [-0.13, 0.5, 0], swing: -1, tile: b + 4 },
+        { size: [0.5, 0.62, 0.3], at: [0, 0.83, 0], tile: b + 4 },
+        { size: [0.16, 0.16, 0.58], at: [0.33, 1.02, -0.26], tile: b + 2 },
+        { size: [0.16, 0.16, 0.58], at: [-0.33, 1.02, -0.26], tile: b + 2 },
+        { size: [0.58, 0.58, 0.58], at: [0, 1.45, 0], tile: b + 2 },
+        { size: [0.56, 0.56, 0.05], at: [0, 1.45, -0.3], tile: b + 3 },
       ];
-      // 守衛（魁梧＋肩甲）
+      // 守衛（魁梧＋肩甲＋大頭盔）
       const guard = (bt, ft) => humanoid({
-        leg: 0.26, bodyW: 0.66, bodyD: 0.36, armW: 0.24, head: 0.52,
+        leg: 0.26, bodyW: 0.7, bodyD: 0.42, armW: 0.24, head: 0.66,
         legT: bt, bodyT: bt, armT: bt, headT: bt, faceT: ft,
         extra: [
-          { size: [0.32, 0.16, 0.34], at: [0.47, 1.92, 0], tile: bt },
-          { size: [0.32, 0.16, 0.34], at: [-0.47, 1.92, 0], tile: bt },
+          { size: [0.36, 0.18, 0.46], at: [0.51, 1.22, 0], tile: bt },
+          { size: [0.36, 0.18, 0.46], at: [-0.51, 1.22, 0], tile: bt },
         ],
       });
       MODELS['guardA' + w] = guard(b + 5, b + 6);
       MODELS['guardB' + w] = guard(b + 7, b + 8);
       // 魔王（守衛體型＋頭上尖角冠）
       MODELS['boss' + w] = guard(b + 9, b + 10).concat([
-        { size: [0.1, 0.3, 0.1], at: [0.18, 2.18, 0], tile: b + 9 },
-        { size: [0.1, 0.42, 0.1], at: [0, 2.24, 0], tile: b + 9 },
-        { size: [0.1, 0.3, 0.1], at: [-0.18, 2.18, 0], tile: b + 9 },
+        { size: [0.12, 0.3, 0.12], at: [0.2, 1.88, 0], tile: b + 9 },
+        { size: [0.12, 0.44, 0.12], at: [0, 1.95, 0], tile: b + 9 },
+        { size: [0.12, 0.3, 0.12], at: [-0.2, 1.88, 0], tile: b + 9 },
       ]);
     }
-    // 玩家：金甲勇者＋紅髮馬尾
-    MODELS.player = humanoid({
-      legT: 44, bodyT: 44, armT: 44, headT: 45, faceT: 45,
-      extra: [
-        { size: [0.5, 0.14, 0.5], at: [0, 2.06, 0], tile: 46 },      // 髮頂
-        { size: [0.48, 0.3, 0.08], at: [0, 1.9, 0.27], tile: 46 },   // 後腦髮
-        { size: [0.14, 0.7, 0.14], at: [0, 1.5, 0.34], tile: 46 },   // 馬尾
-      ],
-    });
+    // 玩家：金甲勇者——胸甲寶石、肩甲、腰帶、金靴、大眼臉、三段飄逸馬尾
+    MODELS.player = [
+      { size: [0.24, 0.5, 0.26], pivot: [0.15, 0.5, 0], swing: 1, tile: 55 },      // 腿（褲＋金靴）
+      { size: [0.24, 0.5, 0.26], pivot: [-0.15, 0.5, 0], swing: -1, tile: 55 },
+      { size: [0.64, 0.14, 0.42], at: [0, 0.56, 0], tile: 56 },                    // 腰帶
+      { size: [0.58, 0.6, 0.36], at: [0, 0.92, 0], tile: 54 },                     // 軀幹
+      { size: [0.56, 0.58, 0.05], at: [0, 0.92, -0.21], tile: 53 },                // 胸甲前板（寶石）
+      { size: [0.2, 0.56, 0.22], pivot: [0.41, 1.16, 0], swing: -1, arm: 1, tile: 44 },
+      { size: [0.2, 0.56, 0.22], pivot: [-0.41, 1.16, 0], swing: 1, arm: 1, tile: 44 },
+      { size: [0.36, 0.16, 0.42], at: [0.43, 1.24, 0], tile: 54 },                 // 肩甲
+      { size: [0.36, 0.16, 0.42], at: [-0.43, 1.24, 0], tile: 54 },
+      { size: [0.6, 0.56, 0.58], at: [0, 1.52, 0], tile: 46 },                     // 頭（髮包覆）
+      { size: [0.56, 0.5, 0.06], at: [0, 1.49, -0.3], tile: 45 },                  // 臉
+      { size: [0.66, 0.18, 0.64], at: [0, 1.84, 0], tile: 46 },                    // 髮頂
+      { size: [0.2, 0.42, 0.2], at: [0, 1.62, 0.38], tile: 46 },                   // 馬尾上
+      { size: [0.17, 0.4, 0.17], at: [0, 1.24, 0.46], tile: 46 },                  // 馬尾中
+      { size: [0.14, 0.36, 0.14], at: [0, 0.88, 0.52], tile: 46 },                 // 馬尾下
+    ];
   })();
 
   function createRenderer(canvas) {

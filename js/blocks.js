@@ -47,6 +47,7 @@ const B = {
   DEADBUSH: 37,    // 枯枝（cross）
   STAR: 38,        // W5 星光碎片（cross、發光）
   SKULLROCK: 39,   // 骷髏石（魔王區裝飾）
+  GLOWPAD: 40,     // 粉紅發光壇（聖所地板裝飾）
 };
 
 // solid：擋人。cross：十字面片。cutout：鏤空。emissive：自發光。light：入點光源表。h：高度。
@@ -91,6 +92,7 @@ const DEFS = {
   [B.DEADBUSH]:   { name: '枯枝', solid: false, tiles: 41, cross: true },
   [B.STAR]:       { name: '星光', solid: false, tiles: 42, cross: true, emissive: true, light: true },
   [B.SKULLROCK]:  { name: '骷髏石', solid: true, tiles: 43 },
+  [B.GLOWPAD]:    { name: '光壇', solid: true, tiles: 58, emissive: true },
 };
 
 function def(id) { return DEFS[id] || DEFS[B.AIR]; }

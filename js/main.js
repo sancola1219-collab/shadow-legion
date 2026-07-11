@@ -49,7 +49,7 @@
     weather: null,
     playedT: 0, autosaveT: 0, unloadT: 0, spawnT: 0, prodAcc: 0,
     attackCool: 0, attackAnim: 0, hurtFlash: 0,
-    camDist: 4.6,
+    camDist: 3.8,
     lights: [],
     meshed: new Set(),
     panel: null,
@@ -114,6 +114,14 @@
       for (const [x, z] of [[-S, -S], [S, -S], [-S, S], [S, S]]) G.lights.push([x + 0.5, GY + 3.6, z + 0.5]);
       for (const z of [-12, 12]) for (const x of [-3, 3]) G.lights.push([x + 0.5, GY + 2.6, z + 0.5]);
       G.lights.push([SANCTUM.portal.x + 0.5, GY + 3, SANCTUM.portal.z + 0.5]);
+      // 外圈矮牆定距紫燈（與 worldgen 的 (wx+wz)%8===0 對應）
+      for (let i = -S + 1; i < S; i++) {
+        for (const [lx2, lz2] of [[i, -S], [i, S], [-S, i], [S, i]]) {
+          if (((lx2 + lz2) % 8 + 8) % 8 === 0 && !(lz2 === -S && Math.abs(lx2) <= 3)) {
+            G.lights.push([lx2 + 0.5, GY + 2.6, lz2 + 0.5]);
+          }
+        }
+      }
     } else {
       const w = seed - 1000;
       for (let x = 7; x < BATTLE.arena.cx - 6; x += 14) {
@@ -621,7 +629,7 @@
           type: u.skin + u.world, x: px + 0.5, y: GY + 1.3, z: pz + 0.5,
           yaw: px < 0 ? Math.PI / 2 : -Math.PI / 2, // 面向中央走道
           anim: Math.sin(G.playedT * 0.8 + i) * 0.14,
-          attack: 0, hurtT: 0, deathT: 0, scale: u.scale || 1, light: 1,
+          attack: 0, hurtT: 0, deathT: 0, scale: (u.scale || 1) * 1.35, light: 1, // 展示放大
         });
       }
     }
@@ -725,11 +733,12 @@
         if (u.hp <= 0) continue;
         const unit = UNITS[u.unitId];
         const rar = RARITY[unit.rarity];
+        const topY = u.y + u.hh * 0.92 + 0.45; // Q 版模型視覺高度略低於物理箱
         if (u.faction === 'enemy') {
-          use(u.x, u.y + u.hh + 0.55, u.z, `${rar.name}・${u.name}`, rar.color, u.hp / u.maxHp,
+          use(u.x, topY, u.z, `${rar.name}・${u.name}`, rar.color, u.hp / u.maxHp,
             unit.rarity === 'common' ? '#e04040' : '#3a7dff', null);
         } else {
-          use(u.x, u.y + u.hh + 0.4, u.z, u.name, '#a8e8a8', u.hp / u.maxHp, '#58c858', null);
+          use(u.x, topY - 0.15, u.z, u.name, '#a8e8a8', u.hp / u.maxHp, '#58c858', null);
         }
       }
       // 聖所平台名牌（名稱＋數量＋產出）
@@ -1175,7 +1184,7 @@
   });
 
   // 測試掛鉤（自動驗證用）
-  window.__sw = { G, tick, step, renderFrame, doSave, startScene, startGame, chunkWork, playerAttack, summonParty, openPanel, closePanel };
+  window.__sw = { G, tick, step, renderFrame, doSave, startScene, startGame, chunkWork, playerAttack, summonParty, openPanel, closePanel, renderer };
 
   // 啟動
   initLabels();
