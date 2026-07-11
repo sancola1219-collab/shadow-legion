@@ -66,7 +66,7 @@ function stepUnit(m, world, dt, ctx, rand, events) {
   }
 
   const u = UNITS[m.unitId];
-  const aggro = m.faction === 'ally' ? 16 : (m.boss ? 60 : 22);
+  const aggro = m.faction === 'ally' ? 24 : (m.boss ? 60 : 22); // 友軍主動找架打
   const tgt = nearestTarget(m, ctx, aggro);
   let mvx = 0, mvz = 0;
 

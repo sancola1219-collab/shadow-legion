@@ -142,6 +142,21 @@ body {
   box-shadow: 0 0 16px rgba(180,90,255,0.5);
 }
 
+/* 召喚圓章（右下） */
+#btn-summon {
+  pointer-events: auto; position: absolute; right: 16px; bottom: 88px;
+  width: 88px; height: 88px; border-radius: 50%; padding: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 35%, #6a2ab0, #2a0e50 70%);
+  border: 3px solid #b45aff; color: #fff;
+  box-shadow: 0 0 18px rgba(180,90,255,0.55), inset 0 0 12px rgba(220,170,255,0.3);
+  transition: transform 0.1s;
+}
+#btn-summon:hover:not(:disabled) { transform: scale(1.06); background: radial-gradient(circle at 50% 35%, #7a36c8, #2a0e50 70%); }
+#btn-summon:disabled { opacity: 0.55; }
+#btn-summon i { font-style: normal; font-size: 26px; line-height: 1; }
+#btn-summon span { font-size: 13px; margin-top: 2px; letter-spacing: 2px; }
+
 #buildtag {
   position: fixed; right: 6px; bottom: 4px; font-size: 10px;
   color: rgba(255,255,255,0.4); pointer-events: none; z-index: 60;
@@ -263,7 +278,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .tbtn.active { background: rgba(255,210,74,0.45); }
 .tbtn.tbig { width: 76px; height: 76px; font-size: 26px; }
 #tcluster {
-  position: absolute; right: 18px; bottom: 96px;
+  position: absolute; right: 18px; bottom: 200px;
   display: flex; gap: 12px; align-items: center;
 }
 body.is-touch #touch-ui { display: block !important; }

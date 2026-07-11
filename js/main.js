@@ -90,15 +90,12 @@
 
     buildLights(seed);
 
+    G.summonCool = 0;
     if (scene === 'battle') {
-      // 影子軍團跟隨出戰
       const party = GD.battleParty(G.save);
-      for (let i = 0; i < party.length; i++) {
-        const a = (i / Math.max(1, party.length)) * Math.PI * 2;
-        const u = UN.makeUnit(party[i], sp[0] - 2 + Math.cos(a) * 1.8, sp[1], sp[2] + Math.sin(a) * 1.8, 'ally');
-        G.units.push(u);
-      }
-      showHint(`⚔ ${WORLDS[G.worldNum].name}：清除區域敵人，打開閘門，直搗魔王！`, 5000);
+      showHint(party.length
+        ? `⚔ ${WORLDS[G.worldNum].name}：按「召喚」叫出你的亡靈軍團，讓他們替你打！`
+        : `⚔ ${WORLDS[G.worldNum].name}：打倒敵人有機率奪取影子，之後就能召喚亡靈幫你打！`, 6000);
     }
     updateSceneHud();
   }
@@ -215,6 +212,35 @@
     showHint('✅ 區域清除！閘門開啟，繼續前進 →', 4000);
   }
 
+  // ---------- 召喚亡靈 ----------
+  function summonParty(quiet) {
+    if (G.scene !== 'battle' || G.state !== 'playing' || G.summonCool > 0) return;
+    const party = GD.battleParty(G.save);
+    if (!party.length) { if (!quiet) showHint('還沒有亡靈可以召喚——先打倒敵人「奪取」他們的影子！', 3500); return; }
+    // 找出缺席的名額（同種可疊，用多重集差集）
+    const need = {};
+    for (const id of party) need[id] = (need[id] || 0) + 1;
+    for (const u of G.units) {
+      if (u.faction === 'ally' && u.hp > 0 && need[u.unitId]) need[u.unitId]--;
+    }
+    const spawnList = [];
+    for (const id in need) for (let i = 0; i < need[id]; i++) spawnList.push(id);
+    if (!spawnList.length) { if (!quiet) showHint('軍團已全數在場，殺啊！', 2500); return; }
+    G.summonCool = 6;
+    const p = G.player;
+    for (let i = 0; i < spawnList.length; i++) {
+      const a = (i / spawnList.length) * Math.PI * 2 + G.rand() * 0.5;
+      const x = p.x + Math.cos(a) * 2.2, z = p.z + Math.sin(a) * 2.2;
+      const u = UN.makeUnit(spawnList[i], x, p.y + 0.1, z, 'ally');
+      u.yaw = p.yaw;
+      G.units.push(u);
+      spawnBurst(x, p.y + 1, z, 48, 10, 3.5); // 紫焰召喚特效
+    }
+    SFX.magic();
+    SFX.zombie();
+    showHint(`👻 召喚 ${spawnList.length} 名亡靈參戰！`, 2500);
+  }
+
   // ---------- 戰鬥 ----------
   function playerAttack() {
     if (G.attackCool > 0) return;
@@ -329,6 +355,7 @@
   function autoSteer(axes) {
     if (G.scene !== 'battle') return axes;
     const p = G.player;
+    if (G.summonCool <= 0) summonParty(true); // 自動模式自動補召亡靈（安靜）
     // 目標：最近敵人 > 閘門/競技場
     let tx = null, tz = null, best = 60;
     for (const u of G.units) {
@@ -365,6 +392,7 @@
     if (p.hurtCool > 0) p.hurtCool -= dt;
     if (G.attackCool > 0) G.attackCool -= dt;
     if (G.attackAnim > 0) G.attackAnim -= dt * 2.4;
+    if (G.summonCool > 0) G.summonCool -= dt;
 
     // 脫戰回血：4 秒沒受傷 → 每秒回 4% 最大生命（聖所加倍）
     G.sinceHurt = (G.sinceHurt || 0) + dt;
@@ -751,6 +779,15 @@
     $('title-pill').textContent = `🏅 ${t ? t.name : ''}・重生 ${G.save.rebirths || 0}`;
     if (G.scene === 'battle') {
       $('drop-label').textContent = `掉落數（${G.dropCount}）`;
+      // 召喚鈕冷卻
+      const sb = $('btn-summon');
+      if (G.summonCool > 0) {
+        sb.disabled = true;
+        sb.children[1].textContent = Math.ceil(G.summonCool) + 's';
+      } else {
+        sb.disabled = false;
+        sb.children[1].textContent = '召喚';
+      }
       // 區域節點
       for (let i = 0; i < 4; i++) {
         const node = $('zn' + i);
@@ -779,6 +816,7 @@
     $('zonebar').style.display = battle ? 'flex' : 'none';
     $('zone-progress').style.display = battle ? 'block' : 'none';
     $('battle-controls').style.display = battle ? 'flex' : 'none';
+    $('btn-summon').style.display = battle ? 'flex' : 'none';
     $('weather-pill').style.display = battle ? 'none' : 'flex';
     $('btn-gate').style.display = battle ? 'none' : 'block';
     $('bossbar').style.display = 'none';
@@ -1063,6 +1101,7 @@
   $('btn-back').addEventListener('click', () => {
     if (G.scene === 'battle' && G.state === 'playing') { SFX.click(); startScene('sanctum'); }
   });
+  $('btn-summon').addEventListener('click', () => summonParty());
   $('btn-auto').addEventListener('click', () => {
     G.save.settings.auto = !G.save.settings.auto;
     $('btn-auto').textContent = G.save.settings.auto ? '自動開啟' : '自動關閉';
@@ -1099,6 +1138,7 @@
       return;
     }
     if (G.state !== 'playing') return;
+    if (code === 'KeyF') summonParty();
     if (code === 'KeyB') openPanel('army');
     if (code === 'KeyP') openPanel('shop');
     if (code === 'KeyI') openPanel('index');
@@ -1135,7 +1175,7 @@
   });
 
   // 測試掛鉤（自動驗證用）
-  window.__sw = { G, tick, step, renderFrame, doSave, startScene, startGame, chunkWork, playerAttack, openPanel, closePanel };
+  window.__sw = { G, tick, step, renderFrame, doSave, startScene, startGame, chunkWork, playerAttack, summonParty, openPanel, closePanel };
 
   // 啟動
   initLabels();

@@ -77,7 +77,9 @@
       }
       bright = clamp(0.07 + sun + glow + tl * 0.95, 0.0, 1.0);
     }
-    vec3 c = t.rgb * bright * vL.y;
+    // 每方塊微色調變化（卡通拼布地面感）
+    float vary = fract(sin(dot(floor(vWorld.xz + 0.001), vec2(12.9898, 78.233))) * 43758.5453);
+    vec3 c = t.rgb * bright * vL.y * (0.94 + 0.06 * vary);
     float fog = smoothstep(uFogNear, uFogFar, vDist);
     frag = vec4(mix(c, uFog, fog), t.a * uAlpha);
   }`;
@@ -478,6 +480,26 @@
       for (const m of visible) if (m.cutout) {
         gl.bindVertexArray(m.cutout.vao);
         gl.drawElements(gl.TRIANGLES, m.cutout.count, gl.UNSIGNED_INT, 0);
+      }
+
+      // 單位腳下陰影（半透明扁方塊，先畫、單位蓋在上面）
+      if (sc.mobs.length) {
+        gl.useProgram(progFlat);
+        gl.uniformMatrix4fv(U(progFlat, 'uPV'), false, pv);
+        gl.uniform4f(U(progFlat, 'uColor'), 0.02, 0.01, 0.05, 0.34);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+        gl.bindVertexArray(cubeVao);
+        for (const mob of sc.mobs) {
+          if (mob.deathT > 0.3) continue;
+          const w = 0.95 * (mob.scale || 1);
+          const m = compose(translate(mob.x, mob.y + 0.045, mob.z), scale(w, 0.01, w));
+          gl.uniformMatrix4fv(U(progFlat, 'uModel'), false, m);
+          gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+        }
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
       }
 
       // 實體

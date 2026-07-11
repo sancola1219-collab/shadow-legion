@@ -1,6 +1,16 @@
 # 接手指南（HANDOVER）— 陰影軍團
 
-> 最後更新：2026-07-11。之後每次大改請更新本檔。
+> 最後更新：2026-07-11（v1.1）。之後每次大改請更新本檔。
+
+## 版本紀錄
+
+- **v1.1（2026-07-11）畫風升級＋召喚系統**（使用者反映「畫風畫質差、要召喚自己亡靈打架」）
+  - textures.js 全面重畫：圖集 256→512（tile 16→32px）、高噪點改柔和漸層＋少量色斑、
+    磚縫/墓碑/傳送門/靈魂焰精緻化、單位眼睛加發光暈。
+  - render.js：chunk shader 每方塊 ±6% 色調變化（拼布地面感）、單位腳下半透明陰影塊。
+  - 召喚系統：戰鬥開場不帶兵，按「召喚」圓章（或 F）召出軍團、冷卻 6s、陣亡補召、
+    自動模式安靜自動補召。友軍索敵範圍 16→24。
+- **v1.0（2026-07-11）初版**：見下文。
 
 ## 這是什麼
 
@@ -68,6 +78,8 @@ units.stepUnit（enemy 追玩家/友軍；ally 追敵人否則跟隨玩家）→
 - **掉落物透明貼圖**：實體 shader 預設不裁切 alpha，靈魂紫焰會變黑方塊 → drops 迴圈開 `uCutout=1`。
 - **git identity**：本機 repo 要 `git config user.name/email`（沿用 sancola1219-collab / sancola1220@gmail.com）。
 - Windows 下 `node --test tests/` 讀不到目錄，要指名 `tests/logic.test.js`。
+- **PowerShell 改中文檔案會毀 UTF-8**：`(Get-Content -Raw) -replace ... | Set-Content` 把檔案讀成
+  ANSI 全變亂碼（index.html 曾中招，靠 git checkout 救回）。改檔一律用 Edit 工具。
 
 ## 擴充速查
 

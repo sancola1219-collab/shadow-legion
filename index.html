@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>我的方塊世界2：陰影軍團</title>
-<link rel="stylesheet" href="./css/style.css?v=1">
+<link rel="stylesheet" href="./css/style.css?v=2">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -56,6 +56,7 @@
     <button id="btn-auto" class="ctl-btn auto">自動關閉</button>
   </div>
   <button id="btn-gate" class="ctl-btn gate" style="display:none">⚔ 進入閘口</button>
+  <button id="btn-summon" style="display:none"><i>👻</i><span>召喚</span></button>
 </div>
 
 <div id="overlay-hurt"></div>
@@ -159,14 +160,14 @@
     <h2>操作說明</h2>
     <p class="tip" style="line-height:2.1;text-align:left">
       <b>電腦</b><br>
-      WASD 移動．滑鼠 視角．空白鍵 跳．左鍵 攻擊<br>
+      WASD 移動．滑鼠 視角．空白鍵 跳．左鍵 攻擊．<b style="color:#c890ff">F 召喚亡靈</b><br>
       B 軍團．P 商店．I 索引．T 稱號．R 自動戰鬥．Q 返回聖所<br><br>
       <b>手機</b><br>
-      左搖桿移動．右半畫面滑動轉視角．⚔ 按鈕攻擊<br><br>
+      左搖桿移動．右半畫面滑動轉視角．⚔ 攻擊．👻 圓章召喚亡靈<br><br>
       <b>玩法</b><br>
       聖所走近紫色傳送門（或按「進入閘口」）選擇世界<br>
       打倒敵人收集紫色靈魂，有機率「奪取」敵人的影子！<br>
-      奪來的影子會跟你出戰，也會在聖所自動產靈魂<br>
+      按「召喚」把奪來的亡靈叫出來替你打，他們也會在聖所產靈魂<br>
       清完三個區域就能挑戰魔王，打敗魔王解鎖下一世界<br>
       蒐集五個世界的魔王之後，就能「重生」拿永久加成！
     </p>
@@ -205,21 +206,21 @@
 
 <div id="buildtag">shadow-legion v1.0.0</div>
 
-<script src="./js/noise.js?v=1"></script>
-<script src="./js/blocks.js?v=1"></script>
-<script src="./js/worldgen.js?v=1"></script>
-<script src="./js/world.js?v=1"></script>
-<script src="./js/mesher.js?v=1"></script>
-<script src="./js/physics.js?v=1"></script>
-<script src="./js/gamedata.js?v=1"></script>
-<script src="./js/units.js?v=1"></script>
-<script src="./js/save.js?v=1"></script>
-<script src="./js/weather.js?v=1"></script>
-<script src="./js/textures.js?v=1"></script>
-<script src="./js/render.js?v=1"></script>
-<script src="./js/audio.js?v=1"></script>
-<script src="./js/input.js?v=1"></script>
-<script src="./js/main.js?v=1"></script>
+<script src="./js/noise.js?v=2"></script>
+<script src="./js/blocks.js?v=2"></script>
+<script src="./js/worldgen.js?v=2"></script>
+<script src="./js/world.js?v=2"></script>
+<script src="./js/mesher.js?v=2"></script>
+<script src="./js/physics.js?v=2"></script>
+<script src="./js/gamedata.js?v=2"></script>
+<script src="./js/units.js?v=2"></script>
+<script src="./js/save.js?v=2"></script>
+<script src="./js/weather.js?v=2"></script>
+<script src="./js/textures.js?v=2"></script>
+<script src="./js/render.js?v=2"></script>
+<script src="./js/audio.js?v=2"></script>
+<script src="./js/input.js?v=2"></script>
+<script src="./js/main.js?v=2"></script>
 <script>
 // 載入看門狗：任一支腳本掛掉時把訊息顯示在載入畫面
 (function () {

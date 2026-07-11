@@ -30,7 +30,9 @@
 
 ## 常數速查
 
+- 圖集 512×512、**tile 32px**（`TILE=T=32`；textures.js 內 rect/px 用 16 單位設計空間自動 ×2）。
 - 方塊 tile 1..43（blocks.js/textures.js 對應）；44..52 玩家與特效；`skinBase(w)=64+(w-1)*12` 各世界皮膚 12 格。
+- **召喚**：戰鬥不自動帶兵；`summonParty()`（按鈕/F 鍵，冷卻 6s）召出 battleParty 缺額；自動模式每 tick 安靜補召。
 - 單位 id：`w{1..5}_{skel|zomb|guardA|guardB|boss}`；render 模型鍵 = `skin+world`（如 `skel1`）＋ `player`。
 - 稀有度：common 常見(奪取30%)/rare 稀有(15%)/epic 史詩(6%)/legendary 傳說(魔王首殺必得，之後10%)；上限 0.9。
 - 數值成長：每世界 敵人×6、靈魂×6、產出/秒×4（`gamedata.js` STAT_MUL/SOUL_MUL/PROD_MUL）。
@@ -49,6 +51,7 @@
 - 平台 h=0.3、墓碑 h=0.9：走路會撞邊（引擎無自動跨步），佈局時別擋在必經之路。
 - 掉落物渲染開了 cutout（靈魂紫焰是鏤空貼圖）；單位模型不能用帶透明的 tile（會破面）。
 - Browser pane 對 WebGL 頁面 screenshot 會逾時：驗證畫面用 `gl.readPixels` 取樣（見 HANDOVER）。
+- **別用 PowerShell 改中文檔案**（`Get-Content|-replace|Set-Content` 會把 UTF-8 讀成 ANSI 毀掉全檔）；一律用 Edit 工具。
 
 ## 測試與驗證
 
