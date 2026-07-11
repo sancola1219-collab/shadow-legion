@@ -1,0 +1,286 @@
+/* 陰影軍團 — UI 樣式（紫黑金） */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+body {
+  font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+  color: #eee;
+  -webkit-user-select: none; user-select: none;
+  touch-action: none;
+}
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+
+#zonebar {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0;
+}
+.zone-node {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #3a1a55, #14081f);
+  border: 2px solid #6a3aa0; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; position: relative; opacity: 0.75;
+}
+.zone-node span {
+  position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; white-space: nowrap; background: rgba(20,8,32,0.8);
+  padding: 1px 8px; border-radius: 6px; color: #cbaaf0; letter-spacing: 1px;
+}
+.zone-node.cur { opacity: 1; border-color: #ffd24a; box-shadow: 0 0 12px rgba(255,210,74,0.6); }
+.zone-node.done { opacity: 1; border-color: #8fd45e; }
+.zone-node.boss { border-color: #c03050; background: radial-gradient(circle at 50% 40%, #551a2a, #1f0812); }
+.zone-link { width: 34px; height: 3px; background: linear-gradient(90deg, #6a3aa0, #3a1a55); }
+
+#zone-progress {
+  position: absolute; left: 50%; top: 84px; transform: translateX(-50%);
+  font-size: 13px; color: #e8d8ff; text-shadow: 0 1px 3px #000;
+  background: rgba(20,8,32,0.6); padding: 3px 14px; border-radius: 8px;
+}
+#bossbar {
+  position: absolute; left: 50%; top: 116px; transform: translateX(-50%);
+  width: min(70vw, 420px); text-align: center;
+}
+#bossbar-name { font-size: 14px; color: #ff9aae; text-shadow: 0 1px 3px #000; margin-bottom: 3px; }
+#bossbar .bar { height: 14px; background: #1a0a14; border: 2px solid #c03050; border-radius: 8px; overflow: hidden; }
+#bossbar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #e04060, #a02040); transition: width 0.2s; }
+
+#souls-pill {
+  position: absolute; left: 12px; bottom: 14px;
+  background: linear-gradient(180deg, rgba(30,12,50,0.9), rgba(14,6,24,0.9));
+  border: 2px solid #7a4ad0; border-radius: 14px;
+  padding: 8px 18px; font-size: 20px; color: #fff;
+  box-shadow: 0 0 14px rgba(140,80,255,0.35);
+}
+#souls-pill em { font-size: 12px; color: #b0e890; font-style: normal; margin-left: 4px; }
+#title-pill {
+  position: absolute; left: 14px; bottom: 66px;
+  font-size: 11px; color: #d8c090; text-shadow: 0 1px 2px #000;
+  background: rgba(20,10,32,0.55); border-radius: 8px; padding: 2px 10px;
+}
+#hp-wrap {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  width: min(40vw, 240px); text-align: center;
+}
+#hp-wrap .bar { height: 12px; background: #140a1e; border: 2px solid #58c858; border-radius: 8px; overflow: hidden; }
+#hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #78e858, #38a838); transition: width 0.15s; }
+#hp-text { font-size: 11px; color: #cfe8c0; text-shadow: 0 1px 2px #000; }
+
+#weather-pill {
+  position: absolute; left: 12px; top: 42%;
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(180deg, rgba(40,30,10,0.85), rgba(20,14,4,0.85));
+  border: 2px solid #b08830; border-radius: 20px; padding: 6px 14px; font-size: 12px;
+}
+#weather-pill span { color: #e8d090; letter-spacing: 1px; font-size: 10px; }
+#weather-pill b { color: #fff; }
+#weather-pill i { font-style: normal; color: #90e8a0; }
+
+#hint {
+  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  max-width: 86vw; text-align: center;
+  font-size: 15px; color: #fff; text-shadow: 0 1px 3px #000;
+  background: rgba(20,8,32,0.55); padding: 6px 16px; border-radius: 8px;
+  opacity: 0; transition: opacity 0.4s; pointer-events: none;
+}
+#hint.show { opacity: 1; }
+
+/* 世界名牌（投影） */
+#labels { position: absolute; inset: 0; overflow: hidden; }
+.wlabel {
+  position: absolute; transform: translate(-50%, -100%);
+  text-align: center; pointer-events: none; min-width: 70px;
+}
+.wl-name {
+  font-size: 12px; font-weight: bold; text-shadow: 0 1px 3px #000;
+  background: rgba(10,5,20,0.72); border-radius: 6px; padding: 1px 8px;
+  display: inline-block; white-space: nowrap;
+}
+.wl-bar {
+  height: 7px; background: rgba(10,5,20,0.8); border-radius: 4px;
+  overflow: hidden; margin-top: 2px; border: 1px solid rgba(255,255,255,0.25);
+}
+.wl-fill { height: 100%; width: 100%; background: #e04040; transition: width 0.12s; }
+.wl-sub { font-size: 11px; color: #ffe9a0; text-shadow: 0 1px 2px #000; margin-top: 1px; }
+
+/* 側邊按鈕 */
+#side-left { position: absolute; left: 12px; top: 24%; display: flex; flex-direction: column; gap: 10px; }
+#side-right { position: absolute; right: 12px; top: 22%; display: flex; flex-direction: column; gap: 10px; }
+.side-btn {
+  pointer-events: auto;
+  width: 62px; height: 62px; border-radius: 14px;
+  background: linear-gradient(180deg, #4a2a78, #22103c);
+  border: 2px solid #8a5ad0; color: #fff; cursor: pointer;
+  font-size: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  transition: transform 0.1s;
+}
+.side-btn:hover { transform: scale(1.06); }
+.side-btn span { font-size: 11px; margin-top: 1px; }
+
+/* 底部控制 */
+#battle-controls {
+  position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);
+  display: flex; gap: 10px; align-items: center;
+}
+.pill {
+  background: rgba(24,10,42,0.85); border: 2px solid #5a3a90;
+  border-radius: 18px; padding: 7px 18px; font-size: 14px; color: #e8d8ff;
+}
+.ctl-btn {
+  pointer-events: auto; font-family: inherit;
+  border-radius: 18px; padding: 8px 22px; font-size: 15px; cursor: pointer; color: #fff;
+  background: linear-gradient(180deg, #38206a, #1c0e38); border: 2px solid #6a4ab0;
+}
+.ctl-btn.back:hover { background: #40286f; }
+.ctl-btn.auto { background: linear-gradient(180deg, #5a1424, #2a0a12); border-color: #a03048; }
+.ctl-btn.auto.on { background: linear-gradient(180deg, #1e5a24, #0a2a10); border-color: #40a048; }
+.ctl-btn.gate {
+  position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);
+  font-size: 17px; padding: 12px 34px;
+  background: linear-gradient(180deg, #6a2ab0, #38105c); border-color: #b45aff;
+  box-shadow: 0 0 16px rgba(180,90,255,0.5);
+}
+
+#buildtag {
+  position: fixed; right: 6px; bottom: 4px; font-size: 10px;
+  color: rgba(255,255,255,0.4); pointer-events: none; z-index: 60;
+}
+#overlay-hurt {
+  position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(200,0,0,0.55) 100%);
+}
+
+/* ---------- 選單面板 ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 4, 16, 0.72);
+}
+.panel {
+  background: linear-gradient(180deg, #221338, #150a26);
+  border: 2px solid #5a3a90; border-radius: 14px;
+  padding: 24px 30px; text-align: center; position: relative;
+  max-width: min(94vw, 620px); max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+}
+.game-title {
+  font-size: 38px; margin-bottom: 6px; color: #c890ff;
+  text-shadow: 0 0 18px rgba(160,80,255,0.7), 2px 2px 0 #2a0a4a;
+}
+.subtitle { color: #b09ad0; margin-bottom: 14px; font-size: 14px; }
+.death-title { color: #e05050; font-size: 30px; margin-bottom: 8px; }
+.panel h2 { margin-bottom: 12px; color: #e0ccff; }
+.menu-col { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+button {
+  font-family: inherit; font-size: 16px; padding: 10px 22px;
+  background: #3a2464; color: #f0e8ff; border: 2px solid #6a4ab0; border-radius: 10px;
+  cursor: pointer; transition: background 0.15s;
+}
+button:hover:not(:disabled) { background: #4a2f80; }
+button:disabled { opacity: 0.4; cursor: default; }
+.tip { font-size: 13px; color: #b0a0cc; margin-top: 8px; line-height: 1.8; }
+.subhead { font-size: 13px; color: #c8a8f0; margin: 8px 0 10px; }
+.btn-panel-close {
+  position: absolute; right: 8px; top: 8px;
+  width: 42px; height: 42px; padding: 0;
+  font-size: 18px; line-height: 1; border-radius: 10px;
+}
+#loadbar {
+  width: 260px; height: 12px; margin: 12px auto 0;
+  background: #12081f; border: 1px solid #6a4ab0; border-radius: 6px; overflow: hidden;
+}
+#loadbar-fill { width: 0%; height: 100%; background: #b45aff; transition: width 0.2s; }
+
+/* 商店 */
+.shop-row {
+  display: flex; align-items: center; gap: 12px;
+  background: #180c2c; border: 1px solid #4a3078; border-radius: 10px;
+  padding: 10px 14px; margin: 6px 0; text-align: left;
+}
+.shop-row .s-ico { font-size: 24px; }
+.shop-row .s-info { flex: 1; font-size: 14px; line-height: 1.5; }
+.shop-row .s-info em { color: #ffd24a; font-style: normal; font-size: 12px; }
+.shop-row .s-info small { color: #a890c8; }
+.shop-row button { font-size: 14px; padding: 8px 16px; white-space: nowrap; }
+#rebirth-row { margin-top: 14px; border-top: 1px solid #4a3078; padding-top: 10px; }
+.rebirth-btn {
+  background: linear-gradient(180deg, #7a3ac0, #45206c); border-color: #c890ff;
+  font-size: 17px; margin-top: 6px;
+}
+
+/* 單位卡片 */
+.ugrid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px; text-align: left;
+}
+.ucard {
+  display: flex; align-items: center; gap: 8px; position: relative;
+  background: #180c2c; border: 2px solid #4a3078; border-radius: 10px; padding: 8px;
+}
+.ucard.locked { opacity: 0.55; }
+.ucard canvas { width: 40px; height: 40px; image-rendering: pixelated; background: #0c0618; border-radius: 6px; flex: none; }
+.ucard .u-info { font-size: 13px; line-height: 1.4; }
+.ucard .u-info small { display: block; color: #a890c8; font-size: 11px; }
+.party-tag {
+  position: absolute; right: 6px; top: 6px; font-size: 10px;
+  background: #2a5a30; color: #b0f0b8; border-radius: 6px; padding: 1px 6px;
+}
+
+/* 稱號 */
+.title-row {
+  background: #180c2c; border: 1px solid #4a3078; border-radius: 10px;
+  padding: 8px 14px; margin: 6px 0; text-align: left; cursor: pointer; font-size: 14px;
+}
+.title-row small { display: block; color: #a890c8; font-size: 12px; }
+.title-row.locked { opacity: 0.5; cursor: default; }
+.title-row.equipped { border-color: #ffd24a; box-shadow: 0 0 8px rgba(255,210,74,0.35); }
+.title-row:not(.locked):hover { background: #221240; }
+
+/* 世界選擇 */
+.world-btn { text-align: left; line-height: 1.5; }
+.world-btn small { display: block; color: #b0a0cc; font-size: 12px; }
+
+/* ---------- 觸控 ---------- */
+#touch-ui { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+#look-zone { position: absolute; top: 0; right: 0; width: 55%; height: 100%; pointer-events: auto; }
+#stick {
+  position: absolute; left: 26px; bottom: 96px; width: 110px; height: 110px;
+  border-radius: 50%; background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.25);
+  pointer-events: auto;
+}
+#stick-knob {
+  position: absolute; left: 50%; top: 50%; width: 48px; height: 48px;
+  margin: -24px 0 0 -24px; border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+}
+.tbtn {
+  position: relative; width: 58px; height: 58px; border-radius: 50%;
+  background: rgba(160,90,255,0.2); border: 2px solid rgba(200,150,255,0.45);
+  color: #fff; font-size: 15px; display: flex; align-items: center; justify-content: center;
+  pointer-events: auto; text-shadow: 0 1px 2px #000;
+}
+.tbtn.active { background: rgba(255,210,74,0.45); }
+.tbtn.tbig { width: 76px; height: 76px; font-size: 26px; }
+#tcluster {
+  position: absolute; right: 18px; bottom: 96px;
+  display: flex; gap: 12px; align-items: center;
+}
+body.is-touch #touch-ui { display: block !important; }
+body.is-touch #hud { z-index: 31; }
+
+/* ---------- 窄螢幕 ---------- */
+@media (max-width: 640px) {
+  .panel { padding: 18px 12px; }
+  .zone-node { width: 36px; height: 36px; font-size: 15px; }
+  .zone-node span { top: 38px; font-size: 9px; }
+  .zone-link { width: 18px; }
+  #souls-pill { font-size: 16px; padding: 6px 12px; }
+  .side-btn { width: 52px; height: 52px; font-size: 16px; }
+  .side-btn span { font-size: 10px; }
+  #side-left { top: 20%; }
+  #side-right { top: 18%; }
+  #battle-controls { bottom: 40px; }
+  #weather-pill { top: 36%; }
+  .ugrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}

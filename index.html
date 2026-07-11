@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>我的方塊世界2：陰影軍團</title>
+<link rel="stylesheet" href="./css/style.css?v=1">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <!-- 頂部：區域進度（戰鬥） -->
+  <div id="zonebar" style="display:none">
+    <div class="zone-node" id="zn0">💀<span>ZONE 1/3</span></div>
+    <div class="zone-link"></div>
+    <div class="zone-node" id="zn1">💀<span>ZONE 2/3</span></div>
+    <div class="zone-link"></div>
+    <div class="zone-node" id="zn2">💀<span>ZONE 3/3</span></div>
+    <div class="zone-link"></div>
+    <div class="zone-node boss" id="zn3">☠<span>魔王</span></div>
+  </div>
+  <div id="zone-progress" style="display:none"></div>
+  <div id="bossbar" style="display:none">
+    <div id="bossbar-name"></div>
+    <div class="bar"><div id="bossbar-fill"></div></div>
+  </div>
+
+  <!-- 左下：靈魂 -->
+  <div id="souls-pill">🔥 <b id="souls-count">0</b> <em id="prod-rate"></em></div>
+  <div id="title-pill">🏅</div>
+
+  <!-- 血條 -->
+  <div id="hp-wrap"><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span></div>
+
+  <!-- 聖所：天氣倒數 -->
+  <div id="weather-pill"><span>NEXT WEATHER</span><b id="weather-time">00:00</b><i id="weather-fx">☀ 晴</i></div>
+
+  <div id="hint"></div>
+  <div id="labels"></div>
+
+  <!-- 側邊按鈕 -->
+  <div id="side-left">
+    <button id="btn-army" class="side-btn">🎒<span>軍團</span></button>
+  </div>
+  <div id="side-right">
+    <button id="btn-shop" class="side-btn">🛒<span>商店</span></button>
+    <button id="btn-index" class="side-btn">📖<span>索引</span></button>
+    <button id="btn-titles" class="side-btn">🏅<span>稱號</span></button>
+  </div>
+
+  <!-- 底部：戰鬥控制 -->
+  <div id="battle-controls" style="display:none">
+    <div id="drop-label" class="pill">掉落數（0）</div>
+    <button id="btn-back" class="ctl-btn back">返回</button>
+    <button id="btn-auto" class="ctl-btn auto">自動關閉</button>
+  </div>
+  <button id="btn-gate" class="ctl-btn gate" style="display:none">⚔ 進入閘口</button>
+</div>
+
+<div id="overlay-hurt"></div>
+
+<!-- 觸控 -->
+<div id="touch-ui" style="display:none">
+  <div id="look-zone"></div>
+  <div id="stick"><div id="stick-knob"></div></div>
+  <div id="tcluster">
+    <div class="tbtn" data-code="Space">跳</div>
+    <div class="tbtn tbig" data-mouse="0">⚔</div>
+  </div>
+</div>
+
+<!-- 面板：商店 -->
+<div id="shop" class="overlay closable" style="display:none">
+  <div class="panel">
+    <button class="btn-panel-close" aria-label="關閉">✕</button>
+    <h2>🛒 靈魂商店</h2>
+    <div id="shop-list"></div>
+    <div id="rebirth-row">
+      <p class="tip" id="rebirth-desc"></p>
+      <button id="btn-rebirth" class="rebirth-btn">✨ 重生</button>
+    </div>
+  </div>
+</div>
+
+<!-- 面板：軍團 -->
+<div id="army" class="overlay closable" style="display:none">
+  <div class="panel">
+    <button class="btn-panel-close" aria-label="關閉">✕</button>
+    <h2>🎒 陰影軍團</h2>
+    <p class="subhead" id="army-sub"></p>
+    <div id="army-grid" class="ugrid"></div>
+    <p class="tip">出戰隊伍自動選擇最強的影子．全部收藏都會在聖所產出靈魂</p>
+  </div>
+</div>
+
+<!-- 面板：索引 -->
+<div id="index" class="overlay closable" style="display:none">
+  <div class="panel">
+    <button class="btn-panel-close" aria-label="關閉">✕</button>
+    <h2>📖 索引圖鑑</h2>
+    <p class="subhead" id="index-sub"></p>
+    <div id="index-grid" class="ugrid"></div>
+  </div>
+</div>
+
+<!-- 面板：稱號 -->
+<div id="titles" class="overlay closable" style="display:none">
+  <div class="panel">
+    <button class="btn-panel-close" aria-label="關閉">✕</button>
+    <h2>🏅 稱號</h2>
+    <div id="titles-list"></div>
+    <p class="tip">點選已解鎖的稱號即可配戴</p>
+  </div>
+</div>
+
+<!-- 面板：閘口世界選擇 -->
+<div id="worldsel" class="overlay closable" style="display:none">
+  <div class="panel">
+    <button class="btn-panel-close" aria-label="關閉">✕</button>
+    <h2>⚔ 選擇世界</h2>
+    <div id="worldsel-list" class="menu-col"></div>
+  </div>
+</div>
+
+<!-- 勝利 -->
+<div id="victory" class="overlay" style="display:none">
+  <div class="panel">
+    <h1 id="victory-title" style="color:#ffd24a">🏆</h1>
+    <p class="tip" id="victory-text" style="font-size:15px;line-height:2"></p>
+    <div class="menu-col">
+      <button id="btn-victory-sanctum">回聖所</button>
+      <button id="btn-victory-again">再打一次</button>
+    </div>
+  </div>
+</div>
+
+<!-- 死亡 -->
+<div id="death" class="overlay" style="display:none">
+  <div class="panel">
+    <h1 class="death-title">你倒下了…</h1>
+    <p class="tip">靈魂和軍團都還在，回聖所升級再來吧！</p>
+    <div class="menu-col"><button id="btn-respawn">回聖所復活</button></div>
+  </div>
+</div>
+
+<!-- 離線收益 -->
+<div id="offline" class="overlay" style="display:none">
+  <div class="panel">
+    <h2>💤 離線收益</h2>
+    <p class="tip" id="offline-text" style="font-size:15px"></p>
+    <div class="menu-col"><button id="btn-offline-ok">收下！</button></div>
+  </div>
+</div>
+
+<!-- 說明 -->
+<div id="help" class="overlay" style="display:none">
+  <div class="panel">
+    <h2>操作說明</h2>
+    <p class="tip" style="line-height:2.1;text-align:left">
+      <b>電腦</b><br>
+      WASD 移動．滑鼠 視角．空白鍵 跳．左鍵 攻擊<br>
+      B 軍團．P 商店．I 索引．T 稱號．R 自動戰鬥．Q 返回聖所<br><br>
+      <b>手機</b><br>
+      左搖桿移動．右半畫面滑動轉視角．⚔ 按鈕攻擊<br><br>
+      <b>玩法</b><br>
+      聖所走近紫色傳送門（或按「進入閘口」）選擇世界<br>
+      打倒敵人收集紫色靈魂，有機率「奪取」敵人的影子！<br>
+      奪來的影子會跟你出戰，也會在聖所自動產靈魂<br>
+      清完三個區域就能挑戰魔王，打敗魔王解鎖下一世界<br>
+      蒐集五個世界的魔王之後，就能「重生」拿永久加成！
+    </p>
+    <div class="menu-col"><button id="btn-help-back">返回</button></div>
+  </div>
+</div>
+
+<!-- 標題 -->
+<div id="title" class="overlay" style="display:none">
+  <div class="panel">
+    <h1 class="game-title">陰影軍團</h1>
+    <p class="subtitle">我的方塊世界2　—　奪取敵人的影子，建立你的不死大軍！</p>
+    <div class="menu-col">
+      <button id="btn-start">▶ 開始遊戲</button>
+      <button id="btn-help">操作說明</button>
+      <button id="btn-reset" style="display:none">🗑 重置進度</button>
+    </div>
+    <p class="tip">進度會自動儲存在這台裝置的瀏覽器裡</p>
+  </div>
+</div>
+
+<div id="loading" class="overlay">
+  <div class="panel">
+    <h1 class="game-title">陰影軍團</h1>
+    <p class="tip" id="loading-tip">載入中…</p>
+    <div id="loadbar"><div id="loadbar-fill"></div></div>
+  </div>
+</div>
+
+<div id="error" class="overlay" style="display:none">
+  <div class="panel">
+    <h1>無法啟動</h1>
+    <p class="tip">你的瀏覽器不支援 WebGL2，無法執行本遊戲。<br>請改用較新的 Chrome / Edge / Firefox。</p>
+  </div>
+</div>
+
+<div id="buildtag">shadow-legion v1.0.0</div>
+
+<script src="./js/noise.js?v=1"></script>
+<script src="./js/blocks.js?v=1"></script>
+<script src="./js/worldgen.js?v=1"></script>
+<script src="./js/world.js?v=1"></script>
+<script src="./js/mesher.js?v=1"></script>
+<script src="./js/physics.js?v=1"></script>
+<script src="./js/gamedata.js?v=1"></script>
+<script src="./js/units.js?v=1"></script>
+<script src="./js/save.js?v=1"></script>
+<script src="./js/weather.js?v=1"></script>
+<script src="./js/textures.js?v=1"></script>
+<script src="./js/render.js?v=1"></script>
+<script src="./js/audio.js?v=1"></script>
+<script src="./js/input.js?v=1"></script>
+<script src="./js/main.js?v=1"></script>
+<script>
+// 載入看門狗：任一支腳本掛掉時把訊息顯示在載入畫面
+(function () {
+  window.addEventListener('error', function (e) {
+    var tip = document.getElementById('loading-tip');
+    var loading = document.getElementById('loading');
+    if (tip && loading && loading.style.display !== 'none') {
+      tip.textContent = '載入失敗：' + (e.message || '未知錯誤');
+    }
+  });
+  setTimeout(function () {
+    var loading = document.getElementById('loading');
+    var tip = document.getElementById('loading-tip');
+    if (loading && loading.style.display !== 'none' && tip && tip.textContent === '載入中…') {
+      tip.textContent = '載入逾時：請重新整理，或更新瀏覽器後再試';
+    }
+  }, 15000);
+})();
+</script>
+</body>
+</html>
