@@ -85,7 +85,7 @@
     const sp = scene === 'sanctum' ? SANCTUM.spawn : BATTLE.spawn;
     G.player = PH.createPlayer(sp[0], sp[1], sp[2]);
     G.player.maxHp = st.hp; G.player.hp = st.hp;
-    MWInput.state.yaw = scene === 'sanctum' ? Math.PI : Math.PI / 2 * 3; // 聖所面向北（傳送門）；戰場面向 +x
+    MWInput.state.yaw = scene === 'sanctum' ? 0 : Math.PI / 2 * 3; // 聖所面向北（yaw=0 朝 -z，看向傳送門）；戰場面向 +x
     MWInput.state.pitch = -0.28;
 
     buildLights(seed);
@@ -243,6 +243,7 @@
     if (p.hurtCool > 0 || dmg <= 0 || p.hp <= 0) return;
     p.hp -= dmg;
     p.hurtCool = 0.55;
+    G.sinceHurt = 0;
     G.hurtFlash = 0.35;
     SFX.hurt();
     if (src) {
@@ -364,6 +365,12 @@
     if (p.hurtCool > 0) p.hurtCool -= dt;
     if (G.attackCool > 0) G.attackCool -= dt;
     if (G.attackAnim > 0) G.attackAnim -= dt * 2.4;
+
+    // 脫戰回血：4 秒沒受傷 → 每秒回 4% 最大生命（聖所加倍）
+    G.sinceHurt = (G.sinceHurt || 0) + dt;
+    if (p.hp > 0 && p.hp < p.maxHp && G.sinceHurt > 4) {
+      p.hp = Math.min(p.maxHp, p.hp + p.maxHp * (G.scene === 'sanctum' ? 0.12 : 0.04) * dt);
+    }
 
     if (G.weather) MWWeather.stepWeather(G.weather, dt, G.rand);
 
