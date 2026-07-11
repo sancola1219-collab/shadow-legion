@@ -278,6 +278,8 @@
     const p = G.player;
     const st = playerStats();
     const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
+    // 揮擊時向前跨一小步（更有砍出去的力道）
+    if (p.onGround) { p.vx += fx * 2.6; p.vz += fz * 2.6; }
     let hitAny = false, anyCrit = false;
     for (const u of G.units) {
       if (u.faction !== 'enemy' || u.hp <= 0) continue;

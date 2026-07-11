@@ -235,12 +235,12 @@
       { size: [0.2, 0.42, 0.2], at: [0, 1.62, 0.38], tile: 46 },                   // 馬尾上
       { size: [0.17, 0.4, 0.17], at: [0, 1.24, 0.46], tile: 46 },                  // 馬尾中
       { size: [0.14, 0.36, 0.14], at: [0, 0.88, 0.52], tile: 46 },                 // 馬尾下
-      // 右手佩劍（rest＝持劍前舉姿勢；隨攻擊揮動）
-      { size: [0.2, 0.07, 0.34], pivot: [0.41, 1.16, 0], rest: -0.6, arm: 1, off: [0, -0.52, 0], tile: 56 }, // 護手
-      { size: [0.085, 0.8, 0.15], pivot: [0.41, 1.16, 0], rest: -0.6, arm: 1, off: [0, -0.55, 0], tile: 61 }, // 劍身
+      // 右手佩劍（rest＝向前持劍的備戰姿勢；攻擊時向前劈下）
+      { size: [0.2, 0.07, 0.34], pivot: [0.41, 1.16, 0], rest: 0.7, arm: 1, off: [0, -0.52, 0], tile: 56 }, // 護手
+      { size: [0.085, 0.8, 0.15], pivot: [0.41, 1.16, 0], rest: 0.7, arm: 1, off: [0, -0.55, 0], tile: 61 }, // 劍身
     ];
-    // 右臂改持劍姿勢（微舉）
-    MODELS.player[5].rest = -0.6;
+    // 右臂改持劍姿勢（向前微舉）
+    MODELS.player[5].rest = 0.7;
   })();
 
   function createRenderer(canvas) {
@@ -557,10 +557,10 @@
         for (const part of MODELS[mob.type]) {
           let pm;
           if (part.pivot) {
-            // rest＝固定姿勢角（持劍手）；攻擊時大幅前揮，其餘走路擺動
+            // rest＝固定姿勢角（持劍手）；攻擊＝向前劈砍（rotX 正向 = 朝 -z 前方）
             let rot;
-            if (part.rest !== undefined) rot = part.rest + (atk > 0 ? -atk * 1.7 : swing * 0.12);
-            else if (part.arm && atk > 0) rot = -atk * 1.9;
+            if (part.rest !== undefined) rot = part.rest + (atk > 0 ? atk * 1.9 : swing * 0.12);
+            else if (part.arm && atk > 0) rot = atk * 1.9;
             else rot = swing * (part.swing || 1) * (part.arm ? 0.55 : 1);
             const off = part.off || [0, 0, 0];
             pm = compose(base,
