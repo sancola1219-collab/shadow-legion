@@ -216,6 +216,19 @@ test('守衛：中距離發射投射物；投射物會打中目標', () => {
   assert.ok(pev.some(e => e.type === 'projhitplayer'), '投射物命中玩家');
 });
 
+test('靈魂衝擊波：貫穿多個敵人、同目標只打一次', () => {
+  const w = flatWorld();
+  const player = PH.createPlayer(0.5, GY + 1, 0.5);
+  const e1 = UN.makeUnit('w1_skel', 4, GY + 1, 0.5, 'enemy');
+  const e2 = UN.makeUnit('w1_zomb', 8, GY + 1, 0.5, 'enemy');
+  const pr = UN.makeProjectile('soulwave', 1, GY + 2, 0.5, 1, 0, 0, 20, 'ally');
+  const pev = [];
+  for (let i = 0; i < 120 && !pr.dead; i++) UN.stepProjectile(pr, w, 1 / 60, { player, units: [e1, e2] }, pev);
+  const hits = pev.filter(e => e.type === 'projhitunit');
+  assert.strictEqual(hits.length, 2, '貫穿兩個目標');
+  assert.notStrictEqual(hits[0].unit, hits[1].unit, '兩個不同目標');
+});
+
 test('單位死亡：發 die 事件後屍體消失', () => {
   const w = flatWorld();
   const rand = MWNoise.mulberry32(7);

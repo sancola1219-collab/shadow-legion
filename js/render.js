@@ -235,7 +235,12 @@
       { size: [0.2, 0.42, 0.2], at: [0, 1.62, 0.38], tile: 46 },                   // 馬尾上
       { size: [0.17, 0.4, 0.17], at: [0, 1.24, 0.46], tile: 46 },                  // 馬尾中
       { size: [0.14, 0.36, 0.14], at: [0, 0.88, 0.52], tile: 46 },                 // 馬尾下
+      // 右手佩劍（rest＝持劍前舉姿勢；隨攻擊揮動）
+      { size: [0.2, 0.07, 0.34], pivot: [0.41, 1.16, 0], rest: -0.6, arm: 1, off: [0, -0.52, 0], tile: 56 }, // 護手
+      { size: [0.085, 0.8, 0.15], pivot: [0.41, 1.16, 0], rest: -0.6, arm: 1, off: [0, -0.55, 0], tile: 61 }, // 劍身
     ];
+    // 右臂改持劍姿勢（微舉）
+    MODELS.player[5].rest = -0.6;
   })();
 
   function createRenderer(canvas) {
@@ -531,9 +536,11 @@
 
       for (const mob of sc.mobs) {
         const ms = mob.scale || 1;
+        const atkPre = mob.attack > 0 ? Math.sin(Math.min(1, mob.attack) * Math.PI) : 0;
         const base = compose(
           translate(mob.x, mob.y, mob.z),
           rotY(mob.yaw),
+          rotX(atkPre * 0.2), // 攻擊時身體前傾
           scale(ms, ms, ms),
           rotZ(mob.deathT ? Math.min(1, mob.deathT / 0.6) * Math.PI / 2 : 0));
         const light = 0.25 + 0.75 * mob.light * (0.22 + 0.78 * sc.day);
@@ -550,11 +557,16 @@
         for (const part of MODELS[mob.type]) {
           let pm;
           if (part.pivot) {
-            const rot = part.arm && atk > 0 ? -atk * 1.9 : swing * part.swing * (part.arm ? 0.55 : 1);
+            // rest＝固定姿勢角（持劍手）；攻擊時大幅前揮，其餘走路擺動
+            let rot;
+            if (part.rest !== undefined) rot = part.rest + (atk > 0 ? -atk * 1.7 : swing * 0.12);
+            else if (part.arm && atk > 0) rot = -atk * 1.9;
+            else rot = swing * (part.swing || 1) * (part.arm ? 0.55 : 1);
+            const off = part.off || [0, 0, 0];
             pm = compose(base,
               translate(part.pivot[0], part.pivot[1], part.pivot[2]),
               rotX(rot),
-              translate(0, -part.size[1] / 2, 0),
+              translate(off[0], off[1] - part.size[1] / 2, off[2]),
               scale(part.size[0], part.size[1], part.size[2]));
           } else {
             pm = compose(base, translate(part.at[0], part.at[1], part.at[2]),

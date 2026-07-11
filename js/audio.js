@@ -83,6 +83,10 @@
       setTimeout(() => { noiseBurst(1.6, 0.28, 380); blip(55, 1.4, 'sawtooth', 0.16, 0.5); }, 90); // 滾雷
     },
     throwWhoosh() { noiseBurst(0.14, 0.14, 2600); },
+    slash() { noiseBurst(0.09, 0.18, 3400); blip(700, 0.06, 'sine', 0.06, 0.4); },   // 揮劍破空
+    heavyHit() { noiseBurst(0.08, 0.3, 1200); blip(90, 0.14, 'square', 0.2, 0.5); }, // 重擊
+    whirl() { noiseBurst(0.35, 0.22, 2400); blip(300, 0.35, 'sawtooth', 0.1, 2.2); },// 旋風斬
+    wave() { blip(180, 0.4, 'sawtooth', 0.18, 3.0); blip(900, 0.25, 'sine', 0.12, 1.8); }, // 靈魂波
     victory() {
       blip(523, 0.25, 'triangle', 0.18, 1.0);
       setTimeout(() => blip(659, 0.25, 'triangle', 0.18, 1.0), 220);

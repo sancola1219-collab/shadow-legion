@@ -283,9 +283,14 @@
     orb(49, 'rgba(88,232,88,0.95)', '#d0ffc0');   // 毒彈
     orb(50, 'rgba(72,200,255,0.95)', '#d0f0ff');  // 電彈
     orb(51, 'rgba(224,72,152,0.95)', '#ffd0e8');  // 魔王彈
-    clearTile(52);                                              // 52 斬擊特效（白弧）
-    { const [ox, oy] = tilePos(52); ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.arc(ox + 16, oy + 16, 12, -0.8, 0.8); ctx.stroke(); }
+    clearTile(52);                                              // 52 斬擊弧光（白芯紫緣大弧）
+    { const [ox, oy] = tilePos(52);
+      ctx.strokeStyle = 'rgba(190,120,255,0.75)'; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.arc(ox + 16, oy + 18, 12, Math.PI + 0.5, Math.PI * 2 - 0.5); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(ox + 16, oy + 18, 12, Math.PI + 0.5, Math.PI * 2 - 0.5); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(ox + 16, oy + 20, 8, Math.PI + 0.6, Math.PI * 2 - 0.6); ctx.stroke(); }
     // 53 玩家胸甲前板：深色側披＋金邊＋紫寶石
     matTile(53, 232, 178, 58, { spots: 0, grad: 0.16 });
     { const [ox, oy] = tilePos(53);
@@ -319,6 +324,26 @@
     { const [ox, oy] = tilePos(58);
       ctx.strokeStyle = '#8a1e66'; ctx.lineWidth = 3;
       ctx.strokeRect(ox + 1.5, oy + 1.5, T - 3, T - 3); }
+    // 59 命中火花（金白十字星）
+    clearTile(59);
+    glow(59, 8, 8, 7, 'rgba(255,230,140,0.95)', 0.9);
+    rect(59, 7, 1, 2, 14, '#fff6d0'); rect(59, 1, 7, 14, 2, '#fff6d0');
+    { const [ox, oy] = tilePos(59); ctx.fillStyle = 'rgba(255,210,90,0.9)';
+      ctx.beginPath(); ctx.moveTo(ox + 6, oy + 6); ctx.lineTo(ox + 26, oy + 26); ctx.lineTo(ox + 22, oy + 28) ; ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(ox + 14, oy + 14, 4, 4); }
+    // 60 靈魂衝擊波（紫色新月形能量）
+    clearTile(60);
+    glow(60, 8, 8, 10, 'rgba(190,110,255,0.9)', 0.85);
+    { const [ox, oy] = tilePos(60);
+      ctx.strokeStyle = 'rgba(220,160,255,0.95)'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.arc(ox + 10, oy + 16, 11, -1.2, 1.2); ctx.stroke();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(ox + 10, oy + 16, 11, -1.1, 1.1); ctx.stroke(); }
+    // 61 劍身金屬（實心，模型用）
+    matTile(61, 226, 232, 246, { spots: 0, grad: 0.22 });
+    { const [ox, oy] = tilePos(61);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(ox, oy, 3, T);
+      ctx.fillStyle = 'rgba(140,150,180,0.6)'; ctx.fillRect(ox + T - 4, oy, 4, T); }
 
     // ---- 64.. 各世界單位皮膚 ----
     // 每世界調色盤：[骨, 殭屍膚, 殭屍衣, 守衛甲, 守A眼, 守B眼, 魔王甲, 魔王眼]

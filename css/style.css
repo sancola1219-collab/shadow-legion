@@ -157,6 +157,23 @@ body {
 #btn-summon i { font-style: normal; font-size: 26px; line-height: 1; }
 #btn-summon span { font-size: 13px; margin-top: 2px; letter-spacing: 2px; }
 
+/* 技能按鈕（召喚章上方） */
+.skill-btn {
+  pointer-events: auto; position: absolute; right: 24px;
+  width: 68px; height: 68px; border-radius: 50%; padding: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 35%, #2a4a8a, #101c40 70%);
+  border: 3px solid #5a8ae0; color: #fff;
+  box-shadow: 0 0 12px rgba(90,138,224,0.5);
+  transition: transform 0.1s;
+}
+#btn-skill1 { bottom: 190px; }
+#btn-skill2 { bottom: 272px; border-color: #b45aff; background: radial-gradient(circle at 50% 35%, #5a2a8a, #240f40 70%); box-shadow: 0 0 12px rgba(180,90,255,0.5); }
+.skill-btn:hover:not(:disabled) { transform: scale(1.08); }
+.skill-btn:disabled { opacity: 0.5; }
+.skill-btn i { font-style: normal; font-size: 22px; line-height: 1; }
+.skill-btn span { font-size: 10px; margin-top: 1px; }
+
 #buildtag {
   position: fixed; right: 6px; bottom: 4px; font-size: 10px;
   color: rgba(255,255,255,0.4); pointer-events: none; z-index: 60;
@@ -278,7 +295,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .tbtn.active { background: rgba(255,210,74,0.45); }
 .tbtn.tbig { width: 76px; height: 76px; font-size: 26px; }
 #tcluster {
-  position: absolute; right: 18px; bottom: 200px;
+  position: absolute; right: 110px; bottom: 96px;
   display: flex; gap: 12px; align-items: center;
 }
 body.is-touch #touch-ui { display: block !important; }

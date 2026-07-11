@@ -49,6 +49,8 @@
     weather: null,
     playedT: 0, autosaveT: 0, unloadT: 0, spawnT: 0, prodAcc: 0,
     attackCool: 0, attackAnim: 0, hurtFlash: 0,
+    hitStop: 0, shake: 0, whirlT: 0, slashes: [],
+    skillCool: { whirl: 0, wave: 0 },
     camDist: 3.8,
     lights: [],
     meshed: new Set(),
@@ -90,7 +92,9 @@
 
     buildLights(seed);
 
-    G.summonCool = 0;
+    G.summonCool = 0; G.attackCool = 0; G.attackAnim = 0;
+    G.hitStop = 0; G.shake = 0; G.whirlT = 0; G.slashes = [];
+    G.skillCool = { whirl: 0, wave: 0 };
     if (scene === 'battle') {
       const party = GD.battleParty(G.save);
       showHint(party.length
@@ -250,26 +254,91 @@
   }
 
   // ---------- 戰鬥 ----------
+  // 對單一目標造成傷害＋完整打擊回饋（暴擊/傷害數字/火花/擊退）
+  function dealHit(u, baseDmg, kx, kz, opts) {
+    const o = opts || {};
+    const crit = G.rand() < 0.15;
+    const dmg = Math.max(1, Math.round(baseDmg * (crit ? 2 : 1) * (o.mul || 1)));
+    UN.hurtUnit(u, dmg, kx, kz);
+    if (crit) {
+      addFloater(u.x, u.y + u.hh, u.z, `💥${fmt(dmg)}`, '#ffd24a');
+      spawnBurst(u.x, u.y + 1.1, u.z, 59, 12, 4.5);
+      SFX.heavyHit();
+    } else {
+      addFloater(u.x, u.y + u.hh, u.z, `-${fmt(dmg)}`, o.color || '#ffffff');
+      spawnBurst(u.x, u.y + 1.1, u.z, 59, 6, 3);
+    }
+    return crit;
+  }
+
   function playerAttack() {
-    if (G.attackCool > 0) return;
-    G.attackCool = 0.45;
+    if (G.attackCool > 0 || G.whirlT > 0) return;
+    G.attackCool = 0.42;
     G.attackAnim = 1;
     const p = G.player;
     const st = playerStats();
     const fx = -Math.sin(p.yaw), fz = -Math.cos(p.yaw);
-    let hitAny = false;
+    let hitAny = false, anyCrit = false;
     for (const u of G.units) {
       if (u.faction !== 'enemy' || u.hp <= 0) continue;
       const dx = u.x - p.x, dz = u.z - p.z;
       const d = Math.hypot(dx, dz);
-      const reach = 2.8 + (u.scale - 1);
+      const reach = 3.0 + (u.scale - 1);
       if (d > reach) continue;
-      if ((dx * fx + dz * fz) / (d || 1) < 0.35) continue; // 約 ±70° 扇形
-      UN.hurtUnit(u, st.dmg, dx, dz);
+      if ((dx * fx + dz * fz) / (d || 1) < 0.3) continue; // 約 ±72° 扇形
+      if (dealHit(u, st.dmg, dx, dz, { color: '#ffe9a0' })) anyCrit = true;
       hitAny = true;
-      spawnBurst(u.x, u.y + 1.2, u.z, 52, 5, 2.5);
     }
-    if (hitAny) SFX.attackHit(); else SFX.throwWhoosh();
+    // 斬擊弧光（在面前劃出，交錯左右斜切）
+    G.comboIdx = (G.comboIdx || 0) + 1;
+    G.slashes.push({
+      x: p.x + fx * 1.7, y: p.y + 1.15, z: p.z + fz * 1.7,
+      yaw: p.yaw, tilt: (G.comboIdx % 2 ? 0.6 : -0.6), t: 0, size: 1.9,
+    });
+    SFX.slash();
+    if (hitAny) {
+      SFX.attackHit();
+      G.hitStop = anyCrit ? 0.09 : 0.05; // 命中頓幀
+      G.shake = anyCrit ? 0.3 : 0.16;    // 畫面震動
+    }
+  }
+
+  // ---------- 招式 ----------
+  function skillWhirl() {
+    if (G.scene !== 'battle' || G.state !== 'playing' || G.skillCool.whirl > 0 || G.whirlT > 0) return;
+    G.skillCool.whirl = 5;
+    G.whirlT = 0.5; // 旋轉動畫
+    const p = G.player, st = playerStats();
+    let hits = 0;
+    for (const u of G.units) {
+      if (u.faction !== 'enemy' || u.hp <= 0) continue;
+      const dx = u.x - p.x, dz = u.z - p.z;
+      if (Math.hypot(dx, dz) > 4.2 + (u.scale - 1)) continue;
+      dealHit(u, st.dmg, dx, dz, { mul: 1.6, color: '#c8f0ff' });
+      hits++;
+    }
+    // 環形弧光 ×4
+    for (let i = 0; i < 4; i++) {
+      const a = p.yaw + i * Math.PI / 2;
+      G.slashes.push({
+        x: p.x - Math.sin(a) * 2.0, y: p.y + 1.1, z: p.z - Math.cos(a) * 2.0,
+        yaw: a, tilt: 0, t: -i * 0.04, size: 2.4,
+      });
+    }
+    SFX.whirl();
+    if (hits) { G.hitStop = 0.07; G.shake = 0.35; }
+  }
+
+  function skillWave() {
+    if (G.scene !== 'battle' || G.state !== 'playing' || G.skillCool.wave > 0) return;
+    G.skillCool.wave = 8;
+    const p = G.player, st = playerStats();
+    const dir = PH.lookDir(p.yaw, 0);
+    G.projectiles.push(UN.makeProjectile('soulwave', p.x + dir[0], p.y + 1.1, p.z + dir[2], dir[0], 0, dir[2], st.dmg * 2, 'ally'));
+    G.attackAnim = 1;
+    spawnBurst(p.x + dir[0] * 1.5, p.y + 1.2, p.z + dir[2] * 1.5, 48, 8, 3);
+    SFX.wave();
+    G.shake = 0.2;
   }
 
   function damagePlayer(dmg, src) {
@@ -364,6 +433,17 @@
     if (G.scene !== 'battle') return axes;
     const p = G.player;
     if (G.summonCool <= 0) summonParty(true); // 自動模式自動補召亡靈（安靜）
+    // 自動放招：敵人夠近就旋風斬、正前方有敵人就靈魂波
+    let near = 0, ahead = false;
+    const pfx = -Math.sin(p.yaw), pfz = -Math.cos(p.yaw);
+    for (const u of G.units) {
+      if (u.faction !== 'enemy' || u.hp <= 0) continue;
+      const dx = u.x - p.x, dz = u.z - p.z, d = Math.hypot(dx, dz);
+      if (d < 4) near++;
+      if (d < 14 && (dx * pfx + dz * pfz) / (d || 1) > 0.85) ahead = true;
+    }
+    if (near >= 2) skillWhirl();
+    if (ahead) skillWave();
     // 目標：最近敵人 > 閘門/競技場
     let tx = null, tz = null, best = 60;
     for (const u of G.units) {
@@ -401,6 +481,15 @@
     if (G.attackCool > 0) G.attackCool -= dt;
     if (G.attackAnim > 0) G.attackAnim -= dt * 2.4;
     if (G.summonCool > 0) G.summonCool -= dt;
+    if (G.shake > 0) G.shake -= dt * 1.6;
+    if (G.whirlT > 0) G.whirlT -= dt;
+    if (G.skillCool.whirl > 0) G.skillCool.whirl -= dt;
+    if (G.skillCool.wave > 0) G.skillCool.wave -= dt;
+    // 斬擊弧光生命週期
+    if (G.slashes.length) {
+      for (const s of G.slashes) s.t += dt;
+      G.slashes = G.slashes.filter(s => s.t < 0.22);
+    }
 
     // 脫戰回血：4 秒沒受傷 → 每秒回 4% 最大生命（聖所加倍）
     G.sinceHurt = (G.sinceHurt || 0) + dt;
@@ -475,6 +564,8 @@
   }
 
   function tickBattle(dt) {
+    // 命中頓幀：世界短暫凍結（打擊感）
+    if (G.hitStop > 0) { G.hitStop -= dt; return; }
     const p = G.player;
     spawnEnemies(dt);
 
@@ -503,7 +594,13 @@
     }
     for (const e of events) {
       if (e.type === 'hitplayer') damagePlayer(e.dmg, e);
-      else if (e.type === 'hitunit') UN.hurtUnit(e.unit, e.dmg, e.kx, e.kz);
+      else if (e.type === 'hitunit') {
+        UN.hurtUnit(e.unit, e.dmg, e.kx, e.kz);
+        if (e.unit.faction === 'enemy') { // 亡靈打敵人也跳傷害數字
+          addFloater(e.unit.x, e.unit.y + e.unit.hh, e.unit.z, `-${fmt(e.dmg)}`, '#b0f0b8');
+          spawnBurst(e.unit.x, e.unit.y + 1, e.unit.z, 59, 3, 2.2);
+        }
+      }
       else if (e.type === 'shoot') {
         G.projectiles.push(UN.makeProjectile(e.proj, e.x, e.y, e.z, e.dx, e.dy, e.dz, e.dmg, e.faction));
         SFX.magic();
@@ -537,7 +634,13 @@
       for (const pr of G.projectiles) UN.stepProjectile(pr, G.world, dt, ctx, pev);
       for (const e of pev) {
         if (e.type === 'projhitplayer') damagePlayer(e.dmg, e);
-        else if (e.type === 'projhitunit') UN.hurtUnit(e.unit, e.dmg, e.kx, e.kz);
+        else if (e.type === 'projhitunit') {
+          UN.hurtUnit(e.unit, e.dmg, e.kx, e.kz);
+          if (e.unit.faction === 'enemy') {
+            addFloater(e.unit.x, e.unit.y + e.unit.hh, e.unit.z, `-${fmt(e.dmg)}`, '#d8a8ff');
+            spawnBurst(e.unit.x, e.unit.y + 1.1, e.unit.z, 48, 6, 3);
+          }
+        }
       }
       G.projectiles = G.projectiles.filter(pr => !pr.dead);
     }
@@ -588,6 +691,13 @@
     const skyHor = darken(theme.hor, 0.5);
     const fogFar = 95 - wthr.precip * 25, fogNear = 60 - wthr.precip * 15;
     const cam = camNow = cameraPos();
+    // 命中震動
+    if (G.shake > 0) {
+      const k = G.shake * 0.12;
+      cam.x += (Math.random() - 0.5) * k;
+      cam.y += (Math.random() - 0.5) * k;
+      cam.z += (Math.random() - 0.5) * k;
+    }
 
     // 最近 16 盞燈
     const near = [];
@@ -604,19 +714,21 @@
 
     // 場景實體
     const mobs = [];
-    // 玩家
+    // 玩家（旋風斬時整身旋轉兩圈）
+    const whirlSpin = G.whirlT > 0 ? (0.5 - G.whirlT) / 0.5 * Math.PI * 4 : 0;
     mobs.push({
-      type: 'player', x: p.x, y: p.y, z: p.z, yaw: p.yaw,
+      type: 'player', x: p.x, y: p.y, z: p.z, yaw: p.yaw + whirlSpin,
       anim: Math.hypot(p.vx, p.vz) > 0.4 ? G.playedT * Math.hypot(p.vx, p.vz) * 0.55 : 0,
-      attack: Math.max(0, G.attackAnim),
+      attack: G.whirlT > 0 ? 0.55 : Math.max(0, G.attackAnim),
       hurtT: p.hurtCool > 0.3 ? 1 : 0, deathT: 0, scale: 1, light: 1,
     });
-    // 戰鬥單位
+    // 戰鬥單位（受擊瞬間放大彈跳）
     for (const u of G.units) {
+      const hitPop = u.hurtT > 0 ? 1 + Math.max(0, u.hurtT - 0.15) * 0.35 : 1;
       mobs.push({
         type: u.skin + u.world, x: u.x, y: u.y, z: u.z, yaw: u.yaw, anim: u.anim,
         attack: Math.max(0, u.attack || 0),
-        hurtT: u.hurtT, deathT: u.deathT, scale: u.scale, light: 1,
+        hurtT: u.hurtT, deathT: u.deathT, scale: u.scale * hitPop, light: 1,
       });
     }
     // 聖所平台展示單位
@@ -639,9 +751,25 @@
     for (const s of G.soulDrops) {
       drops.push({ x: s.x, y: s.y, z: s.z, spin: s.age * 2, tile: 48, light: 1, scale: 0.34 });
     }
-    const PROJ_TILE = { orbA: 49, orbB: 50, orbBoss: 51 };
+    const PROJ_TILE = { orbA: 49, orbB: 50, orbBoss: 51, soulwave: 60 };
     for (const pr of G.projectiles) {
-      drops.push({ x: pr.x, y: pr.y - 0.2, z: pr.z, spin: pr.spin, tile: PROJ_TILE[pr.type] || 49, light: 1, scale: 0.4, flash: 0.25 });
+      const wave = pr.type === 'soulwave';
+      drops.push({
+        x: pr.x, y: pr.y - (wave ? 0.7 : 0.2), z: pr.z,
+        spin: wave ? Math.atan2(pr.vx, pr.vz) : pr.spin,
+        tile: PROJ_TILE[pr.type] || 49, light: 1,
+        scale: wave ? 1.7 : 0.4, flash: wave ? 0 : 0.25,
+      });
+    }
+    // 斬擊弧光（0.22 秒內放大淡出；用告示板方塊呈現）
+    for (const s of G.slashes) {
+      if (s.t < 0) continue;
+      const k = s.t / 0.22;
+      drops.push({
+        x: s.x, y: s.y - (s.size * (0.7 + k * 0.5)) / 2, z: s.z,
+        spin: s.yaw + (s.tilt || 0),
+        tile: 52, light: 1, scale: s.size * (0.7 + k * 0.5),
+      });
     }
     for (const b of G.burst) {
       drops.push({ x: b.x, y: b.y, z: b.z, spin: 0, tile: b.tile, light: 1, scale: b.size });
@@ -788,15 +916,14 @@
     $('title-pill').textContent = `🏅 ${t ? t.name : ''}・重生 ${G.save.rebirths || 0}`;
     if (G.scene === 'battle') {
       $('drop-label').textContent = `掉落數（${G.dropCount}）`;
-      // 召喚鈕冷卻
-      const sb = $('btn-summon');
-      if (G.summonCool > 0) {
-        sb.disabled = true;
-        sb.children[1].textContent = Math.ceil(G.summonCool) + 's';
-      } else {
-        sb.disabled = false;
-        sb.children[1].textContent = '召喚';
-      }
+      // 召喚/技能鈕冷卻
+      const cool = (el, t, label) => {
+        if (t > 0) { el.disabled = true; el.children[1].textContent = Math.ceil(t) + 's'; }
+        else { el.disabled = false; el.children[1].textContent = label; }
+      };
+      cool($('btn-summon'), G.summonCool, '召喚');
+      cool($('btn-skill1'), G.skillCool.whirl, '旋風斬');
+      cool($('btn-skill2'), G.skillCool.wave, '靈魂波');
       // 區域節點
       for (let i = 0; i < 4; i++) {
         const node = $('zn' + i);
@@ -826,6 +953,8 @@
     $('zone-progress').style.display = battle ? 'block' : 'none';
     $('battle-controls').style.display = battle ? 'flex' : 'none';
     $('btn-summon').style.display = battle ? 'flex' : 'none';
+    $('btn-skill1').style.display = battle ? 'flex' : 'none';
+    $('btn-skill2').style.display = battle ? 'flex' : 'none';
     $('weather-pill').style.display = battle ? 'none' : 'flex';
     $('btn-gate').style.display = battle ? 'none' : 'block';
     $('bossbar').style.display = 'none';
@@ -1111,6 +1240,8 @@
     if (G.scene === 'battle' && G.state === 'playing') { SFX.click(); startScene('sanctum'); }
   });
   $('btn-summon').addEventListener('click', () => summonParty());
+  $('btn-skill1').addEventListener('click', () => skillWhirl());
+  $('btn-skill2').addEventListener('click', () => skillWave());
   $('btn-auto').addEventListener('click', () => {
     G.save.settings.auto = !G.save.settings.auto;
     $('btn-auto').textContent = G.save.settings.auto ? '自動開啟' : '自動關閉';
@@ -1148,6 +1279,8 @@
     }
     if (G.state !== 'playing') return;
     if (code === 'KeyF') summonParty();
+    if (code === 'Digit1') skillWhirl();
+    if (code === 'Digit2') skillWave();
     if (code === 'KeyB') openPanel('army');
     if (code === 'KeyP') openPanel('shop');
     if (code === 'KeyI') openPanel('index');
@@ -1184,7 +1317,7 @@
   });
 
   // 測試掛鉤（自動驗證用）
-  window.__sw = { G, tick, step, renderFrame, doSave, startScene, startGame, chunkWork, playerAttack, summonParty, openPanel, closePanel, renderer };
+  window.__sw = { G, tick, step, renderFrame, doSave, startScene, startGame, chunkWork, playerAttack, summonParty, skillWhirl, skillWave, openPanel, closePanel, renderer };
 
   // 啟動
   initLabels();

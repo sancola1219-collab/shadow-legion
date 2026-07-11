@@ -147,6 +147,7 @@ const PROJ_DEFS = {
   orbA:    { speed: 13, life: 2.2 },  // 稀有守衛
   orbB:    { speed: 15, life: 2.2 },  // 史詩守衛
   orbBoss: { speed: 14, life: 3.0 },  // 魔王
+  soulwave: { speed: 18, life: 1.1, pierce: true }, // 玩家招式：靈魂衝擊波（貫穿）
 };
 
 function makeProjectile(type, x, y, z, dx, dy, dz, dmg, faction) {
@@ -156,6 +157,7 @@ function makeProjectile(type, x, y, z, dx, dy, dz, dmg, faction) {
     x, y, z,
     vx: dx * pd.speed, vy: dy * pd.speed, vz: dz * pd.speed,
     life: pd.life, spin: 0, dead: false,
+    pierce: !!pd.pierce, hitSet: pd.pierce ? new Set() : null, // 貫穿彈不消失、同目標只打一次
   };
 }
 
@@ -176,13 +178,15 @@ function stepProjectile(pr, world, dt, ctx, events) {
       return;
     }
   }
-  // 打對方單位
+  // 打對方單位（貫穿彈打完繼續飛，同一目標只算一次）
   for (const m of ctx.units) {
     if (m.hp <= 0 || m.faction === pr.faction) continue;
-    const hitR = Math.max(0.9, m.hw * 2.2);
+    if (pr.hitSet && pr.hitSet.has(m)) continue;
+    const hitR = Math.max(0.9, m.hw * 2.2) + (pr.pierce ? 0.4 : 0);
     const dy = pr.y - (m.y + m.hh / 2);
     if (Math.hypot(pr.x - m.x, dy, pr.z - m.z) < hitR) {
       events.push({ type: 'projhitunit', unit: m, dmg: pr.dmg, kx: m.x - pr.x + pr.vx * 0.01, kz: m.z - pr.z + pr.vz * 0.01 });
+      if (pr.pierce) { pr.hitSet.add(m); continue; }
       pr.dead = true;
       return;
     }
