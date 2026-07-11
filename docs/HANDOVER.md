@@ -4,6 +4,19 @@
 
 ## 版本紀錄
 
+- **v1.3（2026-07-11）戰鬥手感＋招式**（使用者：「完全沒有打擊的效果跟招式」）
+  - 打擊回饋管線集中在 main `dealHit()`：暴擊 15%×2、傷害數字浮動（addFloater）、
+    命中火花（tile 59）、hitStop（tickBattle 開頭 return）、screen shake（renderFrame 抖 cam）、
+    受擊放大（mobs 列表 hitPop）＋原有擊退。
+  - 玩家佩劍：render 模型 part 新增 `rest`（固定姿勢角）與 `off`（旋轉後偏移）欄位；
+    劍身 tile 61（實心，模型不能用透明 tile）。攻擊時 base 矩陣加 rotX 前傾。
+  - 斬擊弧光：`G.slashes`（0.22s 生命）→ drops 層 tile 52 大方塊 cutout。
+  - 招式：`skillWhirl`（360°、1.6×、冷卻 5s、whirlT 讓模型自轉兩圈）、
+    `skillWave`（soulwave 貫穿投射物 `pierce`+`hitSet`、2×、冷卻 8s）。鍵 1/2＋圓章按鈕；
+    autoSteer 會自動放招。
+  - 陷阱：測試時 `startScene` 之前若 state 卡在 'panel'（離線收益彈窗）tick 全部不跑；
+    startScene 現在會重置 attackCool 等全部戰鬥計時器。
+
 - **v1.2（2026-07-11）角色重製**（使用者比對 Roblox 截圖說「人物設計差太多」）
   - 玩家改 Q 版：大頭 0.6、大眼笑臉、胸甲前板＋紫寶石、肩甲、腰帶金扣、金靴、三段馬尾。
   - 全單位 Q 版比例（`humanoid()`：腿 0.5、身 0.62、頭 0.58；守衛頭 0.66）。
